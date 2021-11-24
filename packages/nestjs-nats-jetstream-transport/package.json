@@ -23,7 +23,7 @@
     "messaging"
   ],
   "scripts": {
-    "test": "echo \"no test specified\"",
+    "test": "exit 0",
     "build": "rimraf dist && tsc",
     "watch": "tsc -w"
   },

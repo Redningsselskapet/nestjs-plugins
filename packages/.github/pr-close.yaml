@@ -1,0 +1,36 @@
+on:
+  pull_request:
+   types: [closed]
+jobs:
+  build:
+    env:
+      BUILD_ENV: staging
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.CI_REPOSITORY_ACCESS_TOKEN }}
+
+      - name: Setup NodeJS 14
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+
+      - name: Setup Git Config
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+      - name: Bump version on changed packages
+        run: |
+          npx lerna publish --no-verify-access --conventional-commits --conventional-prerelease --preid pre --no-push --force-git-tag -y
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Push changes 
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.CI_REPOSITORY_ACCESS_TOKEN }}
