@@ -1,4 +1,4 @@
-# Nats JetStream Transport Module for NestJS
+# 🚀 Nats JetStream Transport Module for NestJS
 
 Build Event Driven Microservices Architecture with Nats JetSteam Server and NestJS.
 
@@ -11,7 +11,7 @@ Build Event Driven Microservices Architecture with Nats JetSteam Server and Nest
 - Horizontal scalability
 - Persist Streams and replay via Consumers
 
-## Install
+## 📦 Install
 
 ```bash
 npm i @nestjs/microservices
@@ -19,13 +19,13 @@ npm i nats
 npm i @nestjs-plugins/nestjs-nats-jetstream-transport
 ```
 
-## Running Nats Jetstream server in Docker
+## 🐳 Running Nats Jetstream server in Docker
 
 ```bash
 docker run -d --name nats-main -p 4222:4222 -p 6222:6222 -p 8222:8222 nats -js -m 8222
 ```
 
-## Manage nats server from command line
+## ⚙️ Manage nats server from command line
 
 Install cli tool on MacOS
 
@@ -49,7 +49,7 @@ For the rest of the choices just press enter and use the defaults.
 
 You are now ready to publish and consume events on the stream. See the [code example](#Code-example) below for a test drive.
 
-## Configuration objects
+## 📖 Configuration objects description
 
 ### NatsJetStreamServerOptions
 
@@ -133,7 +133,7 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **msgID**: string - provide your own unique message ID for every message published.
 - **timeout**: number
 
-## Code example
+## 🧩 Code example
 
 ```typescript
 // app.module.ts
