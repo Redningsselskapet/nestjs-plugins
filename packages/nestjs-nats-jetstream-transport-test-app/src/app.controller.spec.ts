@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { NatsJetStreamContext } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 
 describe('AppController', () => {
   let appController: AppController;
