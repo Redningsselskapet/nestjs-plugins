@@ -41,7 +41,7 @@ brew install nats-io/nats-tools/nats
 
 For other platforms see [alternative installation methods](https://github.com/nats-io/natscli/releases/).
 
-To try the [code example](#Code-example) below, add a stream to the nats server:
+To try the [code example](#🧩Code-example) below, add a stream to the nats server:
 
 ```bash
 nats stream add 
@@ -53,7 +53,7 @@ For the rest of the choices just press enter and use the defaults.
 
 [Read more about the stream configuration here]()
 
-You are now ready to publish and consume events on the stream. See the [code example](#Code-example) below for a test drive.
+You are now ready to publish and consume events on the stream. See the [code example](#🧩-Code-example) below for a test drive.
 
 
 
