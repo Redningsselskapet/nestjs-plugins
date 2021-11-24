@@ -26,7 +26,7 @@ jobs:
           
       - name: Bump version on changed packages
         run: |
-          npx lerna publish --no-verify-access --conventional-commits --conventional-prerelease --preid pre --no-push --force-git-tag -y
+          npx lerna version --no-verify-access --conventional-commits --conventional-prerelease --preid pre --no-push --force-git-tag -y
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
