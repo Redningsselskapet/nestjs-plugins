@@ -11,6 +11,8 @@ Build Event Driven Microservices Architecture with Nats JetSteam Server and Nest
 - Horizontal scalability
 - Persist Streams and replay via Consumers
 
+
+
 ## 📦 Install
 
 ```bash
@@ -19,11 +21,15 @@ npm i nats
 npm i @nestjs-plugins/nestjs-nats-jetstream-transport
 ```
 
+
+
 ## 🐳 Running Nats Jetstream server in Docker
 
 ```bash
 docker run -d --name nats-main -p 4222:4222 -p 6222:6222 -p 8222:8222 nats -js -m 8222
 ```
+
+
 
 ## ⚙️ Manage nats server from command line
 
@@ -49,7 +55,9 @@ For the rest of the choices just press enter and use the defaults.
 
 You are now ready to publish and consume events on the stream. See the [code example](#Code-example) below for a test drive.
 
-## 📖 Configuration objects description
+
+
+## 📖 Description - configuration objects
 
 ### NatsJetStreamServerOptions
 
@@ -58,11 +66,15 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **serverConsumerOptions**: ServerConsumerOptions 
 - **jetStreamOptions**: JetStreamOption
 
+
+
 ### NatsJetStreamClientOptions
 
 - **connectionOptions**: ConnectionOptions
 - **jetStreamOptions**: JetStreamOptions
 - **jetStreamPublishOptions**: JetStreamPublishOptions
+
+
 
 ### ServerConsumerOptions
 
@@ -91,6 +103,8 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **deliverGroup**: string - when set will only deliver messages to subscriptions matching that group.
 - **headersOnly**: boolean - configures the consumer to only deliver existing header and the `Nats-Msg-Size` header, no bodies.
 
+
+
 ### ConnectionOptions
 
 - **servers**: string | string[] (default: 'localhost:4222') - String or Array of hostport for servers.
@@ -111,19 +125,23 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **reconnectJitter**: number - control how long before the NATS client attempts to reconnect to a server it has previously connected.
 - **reconnectJitterTLS**: number - control how long before the NATS client attempts to reconnect to a server it has previously connected.
 - **reconnectTimeWait**: number - prevents wasting client resources and alleviates a [*thundering herd*](/developing-with-nats/reconnect/random) situation when additional servers are not available.
-- reconnectDelayHandler: Generated function - A function that returns the number of millis to wait before the next connection to a server it connected to `()=>number`.
+- reconnectDelayHandler: Generated function - A function that returns the number of milliseconds to wait before the next connection to a server it connected to `()=>number`.
 - **timeout**: number (default: 20000) - Number of milliseconds the client will wait for a connection to be established. If it fails it will emit a `connection_timeout` event with a NatsError that provides the hostport of the server where the connection was attempted.
 - **token**: string - Sets a authorization token for a connection.
-- authenticator: Authenticator (default:  none) - Specifies the authenticator function that sets the client credentials.
+- **authenticator:** Authenticator (default:  none) - Specifies the authenticator function that sets the client credentials.
 - **user**: string - Sets the username for a connection.
 - **verbose**: boolean (default: false) - Turns on `+OK` protocol acknowledgements.
 - **waitOnFirstConnect**: boolean (default: false) - If `true` the client will fall back to a reconnect mode if it fails its first connection attempt.
+
+
 
 ### JetStreamOptions
 
 - **apiPrefix**: string - *Not documented!*
 - **domain**: string - Sets the domain for JetStream subjects, creating a standard prefix from that domain.
 - **timeout**: number - Sets the request timeout for JetStream API calls.
+
+
 
 ### JetStreamPublishOption
 
@@ -132,6 +150,8 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **headers**: ?
 - **msgID**: string - provide your own unique message ID for every message published.
 - **timeout**: number
+
+
 
 ## 🧩 Code example
 
