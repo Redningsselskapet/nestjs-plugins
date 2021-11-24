@@ -161,19 +161,21 @@ You are now ready to publish and consume events on the stream. See the [code exa
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { NatsJetStreamTransport } from '@nestjs-plugins/nats-jetstream-transport';
+import { NatsJetStreamTransport } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 
 @Module({
   imports: [
     NatsJetStreamTransport.register({
       connectionOptions: {
-        servers: 'localhost:4222',
+        servers: '127.0.0.1'
+      }
     }),
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
+
 ```
 
 ```typescript
@@ -181,8 +183,9 @@ export class AppModule {}
 
 import {
   NatsJetStreamClientProxy,
-} from '@nestjs-plugins/nats-jetstream-transport';
+} from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Injectable } from '@nestjs/common';
+import { PubAck } from 'nats';
 
 interface OrderCreatedEvent {
   id: number;
@@ -234,12 +237,13 @@ export class AppService {
     return 'order deleted';
   }
 }
+
 ```
 
 ```typescript
 // app.controller.ts
 
-import { NatsJetStreamContext } from '@nestjs-plugins/nats-jetstream-transport';
+import { NatsJetStreamContext } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Controller, Get } from '@nestjs/common';
 import { Ctx, EventPattern, Payload } from '@nestjs/microservices';
 import { AppService } from './app.service';
@@ -295,6 +299,7 @@ export class AppController {
     console.log('received: ' + context.message.subject, data);
   }
 }
+
 ```
 
 ```typescript

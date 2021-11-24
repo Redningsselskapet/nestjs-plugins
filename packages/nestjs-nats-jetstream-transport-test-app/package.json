@@ -21,9 +21,12 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs-plugins/nestjs-nats-jetstream-transport": "^1.0.9",
     "@nestjs/common": "^8.0.0",
     "@nestjs/core": "^8.0.0",
+    "@nestjs/microservices": "^8.2.3",
     "@nestjs/platform-express": "^8.0.0",
+    "nats": "^2.4.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0"
