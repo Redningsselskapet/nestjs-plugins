@@ -4,7 +4,6 @@ import { NATS_JETSTREAM_OPTIONS } from "./constants";
 import { NatsJetStreamClientOptions } from "./interfaces";
 
 export class NatsJetStreamTransport {
-
   static register(options: NatsJetStreamClientOptions): DynamicModule {
     const providers = [
       {
@@ -32,7 +31,7 @@ export class NatsJetStreamTransport {
         },
         NatsJetStreamClientProxy,
       ],
-      exports: [NatsJetStreamClientProxy]
+      exports: [NatsJetStreamClientProxy],
     };
   }
 }
