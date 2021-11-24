@@ -9,7 +9,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Redningsselskapet/nestjs-plugins/tree/master/packages/nestjs-nats-jetstream-transport"
+    "url": "https://github.com/Redningsselskapet/nestjs-plugins"
   },
   "keywords": [
     "nestjs",
