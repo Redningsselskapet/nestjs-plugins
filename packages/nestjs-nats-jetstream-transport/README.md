@@ -2,8 +2,6 @@
 
 Build Event Driven Microservices Architecture with Nats JetSteam Server and NestJS.
 
-
-
 - At-least-once delivery; exactly once within a window
 - Store messages and replay by time or sequence
 - Wildcard support
@@ -12,8 +10,6 @@ Build Event Driven Microservices Architecture with Nats JetSteam Server and Nest
 - Cleanse specific messages (GDPR)
 - Horizontal scalability
 - Persist Streams and replay via Consumers
-
-
 
 ## Install
 
@@ -36,21 +32,22 @@ Install cli tool on MacOS
 ```bash
 brew install nats-io/nats-tools/nats
 ```
+
 For other platforms see [alternative installation methods](https://github.com/nats-io/natscli/releases/).
 
-Add stream
+To try the [code example](#Code-example) below, add a stream to the nats server:
 
 ```bash
-nats stream add mystream # add subject order.*  
+nats stream add 
 ```
 
-Just press enter and use default for the rest of the choices. 
+Enter a stream name e.g. mystream. Then as subjects use `order.* `
 
+For the rest of the choices just press enter and use the defaults.
 
+[Read more about the stream configuration here]()
 
 You are now ready to publish and consume events on the stream. See the [code example](#Code-example) below for a test drive.
-
-
 
 ## Configuration objects
 
@@ -61,15 +58,11 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **serverConsumerOptions**: ServerConsumerOptions 
 - **jetStreamOptions**: JetStreamOption
 
-
-
 ### NatsJetStreamClientOptions
 
 - **connectionOptions**: ConnectionOptions
 - **jetStreamOptions**: JetStreamOptions
 - **jetStreamPublishOptions**: JetStreamPublishOptions
-
-
 
 ### ServerConsumerOptions
 
@@ -97,7 +90,6 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **orderedConsumer**: boolean - a specialized push consumer that puts together flow control, heartbeats, and additional logic to handle message gaps. Ordered consumers cannot operate on a queue and cannot be durable.
 - **deliverGroup**: string - when set will only deliver messages to subscriptions matching that group.
 - **headersOnly**: boolean - configures the consumer to only deliver existing header and the `Nats-Msg-Size` header, no bodies.
-
 
 ### ConnectionOptions
 
@@ -127,15 +119,11 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **verbose**: boolean (default: false) - Turns on `+OK` protocol acknowledgements.
 - **waitOnFirstConnect**: boolean (default: false) - If `true` the client will fall back to a reconnect mode if it fails its first connection attempt.
 
-
-
 ### JetStreamOptions
 
 - **apiPrefix**: string - *Not documented!*
 - **domain**: string - Sets the domain for JetStream subjects, creating a standard prefix from that domain.
 - **timeout**: number - Sets the request timeout for JetStream API calls.
-
-
 
 ### JetStreamPublishOption
 
@@ -144,8 +132,6 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **headers**: ?
 - **msgID**: string - provide your own unique message ID for every message published.
 - **timeout**: number
-
-
 
 ## Code example
 
@@ -168,7 +154,6 @@ import { NatsJetStreamTransport } from '@nestjs-plugins/nats-jetstream-transport
   providers: [AppService],
 })
 export class AppModule {}
-
 ```
 
 ```typescript
@@ -229,7 +214,6 @@ export class AppService {
     return 'order deleted';
   }
 }
-
 ```
 
 ```typescript
@@ -291,7 +275,6 @@ export class AppController {
     console.log('received: ' + context.message.subject, data);
   }
 }
-
 ```
 
 ```typescript
@@ -323,7 +306,4 @@ async function bootstrap() {
   app.listen(3000);
 }
 bootstrap();
-
 ```
-
-
