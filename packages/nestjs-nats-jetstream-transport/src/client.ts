@@ -22,8 +22,6 @@ export class NatsJetStreamClientProxy extends ClientProxy {
   ) {
     super();
     this.sc = StringCodec();
-    // options.connectionOptions.waitOnFirstConnect = true;
-    // this.connect();
   }
 
   async connect(): Promise<JetStreamClient> {
