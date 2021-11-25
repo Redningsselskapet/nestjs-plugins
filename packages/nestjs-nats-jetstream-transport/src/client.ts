@@ -3,7 +3,6 @@ import { ClientProxy, ReadPacket, WritePacket } from "@nestjs/microservices";
 import {
   Codec,
   connect,
-  JetStreamClient,
   NatsConnection,
   PubAck,
   StringCodec,
@@ -14,7 +13,6 @@ import { NatsJetStreamClientOptions } from "./interfaces";
 @Injectable()
 export class NatsJetStreamClientProxy extends ClientProxy {
   private nc: NatsConnection;
-  private js: JetStreamClient;
   private sc: Codec<string>;
 
   constructor(
@@ -24,25 +22,29 @@ export class NatsJetStreamClientProxy extends ClientProxy {
     this.sc = StringCodec();
   }
 
-  async connect(): Promise<JetStreamClient> {
-    this.nc = await connect(this.options.connectionOptions);
-    this.js = this.nc.jetstream(this.options.jetStreamOption);
-    return this.js;
+  async connect(): Promise<NatsConnection> {
+    if (!this.nc) {
+      this.nc = await connect(this.options.connectionOptions);
+    }
+
+    return this.nc;
   }
+
   close() {
     this.nc.close();
   }
 
+  // TODO: This should be reque-replay nats
   protected publish(
     packet: ReadPacket<any>,
     callback: (packet: WritePacket<any>) => void
   ): () => void {
-    this.js
-      .publish(
-        packet.pattern,
-        this.sc.encode(JSON.stringify(packet.data)),
-        this.options.jetStreamPublishOptions
-      )
+    const js = this.nc.jetstream(this.options.jetStreamOption);
+    js.publish(
+      packet.pattern,
+      this.sc.encode(JSON.stringify(packet.data)),
+      this.options.jetStreamPublishOptions
+    )
       .then((pubAck: PubAck) => {
         callback({ response: pubAck });
       })
@@ -51,7 +53,8 @@ export class NatsJetStreamClientProxy extends ClientProxy {
   }
 
   protected async dispatchEvent<T = any>(packet: ReadPacket<T>): Promise<any> {
-    return this.js.publish(
+    const js = this.nc.jetstream(this.options.jetStreamOption);
+    return js.publish(
       packet.pattern,
       this.sc.encode(JSON.stringify(packet.data)),
       this.options.jetStreamPublishOptions

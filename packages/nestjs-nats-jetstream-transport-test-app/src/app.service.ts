@@ -51,7 +51,7 @@ export class AppService {
     this.client
       .send<PubAck, OrderDeleteEvent>(ORDER_DELETED, { id: 1 })
       .subscribe((pubAck) => {
-        console.log(pubAck.seq);
+        console.log(pubAck);
       });
     return 'order deleted';
   }
