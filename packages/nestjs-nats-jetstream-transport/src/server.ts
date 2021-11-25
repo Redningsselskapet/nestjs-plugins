@@ -18,7 +18,10 @@ export class NatsJetStreamServer
   }
 
   async listen(callback: () => null) {
-    this.nc = await connect(this.options.connectionOptions);
+    if (!this.nc) {
+      this.nc = await connect(this.options.connectionOptions);
+    }
+
     await this.bindEventHandlers();
     callback();
   }
