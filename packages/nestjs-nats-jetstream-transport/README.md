@@ -230,9 +230,9 @@ export class AppService {
 
   deleteOrder(): string {
     this.client
-      .send<PubAck, OrderDeleteEvent>(ORDER_DELETED, { id: 1 })
+      .emit<PubAck, OrderDeleteEvent>(ORDER_DELETED, { id: 1 })
       .subscribe((pubAck) => {
-        console.log(pubAck.seq);
+        console.log(pubAck);
       });
     return 'order deleted';
   }
@@ -308,7 +308,7 @@ export class AppController {
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { CustomStrategy } from '@nestjs/microservices';
-import { NatsJetStreamServer } from '@nestjs-plugins/nats-jetstream-transport';
+import { NatsJetStreamServer } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 
 async function bootstrap() {
   const options: CustomStrategy = {
