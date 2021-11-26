@@ -1,8 +1,6 @@
 // app.service.ts
 
-import {
-  NatsJetStreamClientProxy,
-} from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+import { NatsJetStreamClientProxy } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Injectable } from '@nestjs/common';
 import { PubAck } from 'nats';
 
@@ -49,10 +47,8 @@ export class AppService {
 
   deleteOrder(): string {
     this.client
-      .send<PubAck, OrderDeleteEvent>(ORDER_DELETED, { id: 1 })
-      .subscribe((pubAck) => {
-        console.log(pubAck);
-      });
+      .send<null, OrderDeleteEvent>(ORDER_DELETED, { id: 1 })
+      .subscribe();
     return 'order deleted';
   }
 }

@@ -2,7 +2,7 @@
 
 import { NatsJetStreamContext } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Controller, Get } from '@nestjs/common';
-import { Ctx, EventPattern, Payload } from '@nestjs/microservices';
+import { Ctx, EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { AppService } from './app.service';
 
 @Controller()
@@ -35,7 +35,7 @@ export class AppController {
     @Ctx() context: NatsJetStreamContext,
   ) {
     context.message.ack();
-    console.log('received: ' + context.message.subject, data);
+    console.log('update received: ' + context.message.subject, data);
   }
 
   @EventPattern('order.created')
@@ -44,15 +44,15 @@ export class AppController {
     @Ctx() context: NatsJetStreamContext,
   ) {
     context.message.ack();
-    console.log('received: ' + context.message.subject, data);
+    console.log('created received: ' + context.message.subject, data);
   }
 
-  @EventPattern('order.deleted')
+  @MessagePattern('order.deleted')
   public async orderDeletedHandler(
     @Payload() data:any,
     @Ctx() context: NatsJetStreamContext,
   ) {
     context.message.ack();
-    console.log('received: ' + context.message.subject, data);
+    console.log('deleted received: ' + context.message.subject, data);
   }
 }

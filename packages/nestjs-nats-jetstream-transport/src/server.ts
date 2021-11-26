@@ -1,5 +1,9 @@
-import { CustomTransportStrategy, Server } from "@nestjs/microservices";
-import { Codec, connect, NatsConnection, StringCodec } from "nats";
+import {
+  CustomTransportStrategy,
+  MessageHandler,
+  Server,
+} from "@nestjs/microservices";
+import { Codec, connect, NatsConnection, StringCodec, SubscriptionOptions } from "nats";
 import { NatsJetStreamServerOptions } from "./interfaces";
 import { NatsJetStreamContext } from "./nats-jetstream.context";
 import { serverConsumerOptionsBuilder } from "./utils/server-consumer-options-builder";
@@ -23,6 +27,7 @@ export class NatsJetStreamServer
     }
 
     await this.bindEventHandlers();
+    this.bindMessageHandlers();
     callback();
   }
 
@@ -41,23 +46,48 @@ export class NatsJetStreamServer
   }
 
   private async bindEventHandlers() {
-    const subjects = Array.from(this.messageHandlers.keys());
-
-    if (!subjects) {
-      this.logger.log("No message handlers registered");
-    }
-
-    subjects.forEach(async (subject): Promise<void> => {
-      const js = this.nc.jetstream();
-      const opts = this.createConsumerOptions(subject);
-      const handler = this.getHandlerByPattern(subject);
-      const subscription = await js.subscribe(subject, opts);
-      this.logger.log(`Subscribed to ${subject}`);
+    const eventHandlers = this.filterEventHandlers();
+    const js = this.nc.jetstream(this.options.jetStreamOptions);
+    
+    eventHandlers.forEach(async ([subject, eventHandler]) => {
+      const consumerOption = this.createConsumerOptions(subject);
+      const subscription = await js.subscribe(subject, consumerOption);
+      this.logger.log(`Subscribed to ${subject} events`)
       for await (const msg of subscription) {
         const data = JSON.parse(this.sc.decode(msg.data));
         const context = new NatsJetStreamContext([msg]);
-        this.send(from(handler(data, context)), () => null);
+        this.send(from(eventHandler(data, context)), () => null);
       }
-    });
+    })
+  }
+
+  private filterEventHandlers(): [string, MessageHandler<string, any>][] {
+    const eventHandlers = [...this.messageHandlers.entries()].filter(
+      ([, handler]) => handler.isEventHandler
+    );
+    return eventHandlers;
+  }
+
+  private bindMessageHandlers() {
+    const messageHandlers = this.filterMessageHandlers();
+    messageHandlers.forEach(async ([subject, eventHandler]) => {
+      const subscriptionOptions: SubscriptionOptions = {
+        queue: this.options.consumerOptions.deliverTo,
+        max: this.options.consumerOptions.maxMessages,
+        timeout: this.options.consumerOptions.maxWaiting,
+        callback: (err, msg) => {
+          console.log('callback');
+        }
+      }
+      const subscription = this.nc.subscribe(subject, subscriptionOptions)
+      this.logger.log(`Subscribed to ${subject} messages`)
+    })
+  }
+
+  private filterMessageHandlers() {
+    const eventHandlers = [...this.messageHandlers.entries()].filter(
+      ([, handler]) => !handler.isEventHandler
+    );
+    return eventHandlers;
   }
 }
