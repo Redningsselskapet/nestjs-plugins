@@ -64,6 +64,7 @@ export class AppController {
     @Ctx() context: NatsJetStreamContext,
   ) {
     context.message.ack();
+    context.message.nak()
     console.log('created received: ' + context.message.subject, data);
   }
 
@@ -72,7 +73,7 @@ export class AppController {
     @Payload() data: Array<number>,
     @Ctx() context: NatsContext,
   ) {
-    console.log('regnemaskinen jobber...');
+    console.log('The computer is calculating...');
     context.message.respond(StringCodec().encode(JSON.stringify(data.reduce((a, b) => a + b))));
   }
 }
