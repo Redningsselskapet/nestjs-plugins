@@ -1,17 +1,26 @@
 // app.controller.ts
 
+import { NatsContext } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { NatsJetStreamContext } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Controller, Get } from '@nestjs/common';
-import { Ctx, EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
+import {
+  Ctx,
+  EventPattern,
+  MessagePattern,
+  Payload,
+} from '@nestjs/microservices';
 import { AppService } from './app.service';
-
+import { ORDER_CREATED, ORDER_DELETED, ORDER_UPDATED } from './constants';
+import { StringCodec } from 'nats';
+import { Observable } from 'rxjs';
+import { Response } from '@nestjs/common';
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
   home(): string {
-    return 'Welcome to webshop'
+    return 'Welcome to webshop';
   }
 
   @Get('/create')
@@ -24,12 +33,14 @@ export class AppController {
     return this.appService.updateOrder();
   }
 
-  @Get('/delete')
-  deleteOrder(): string {
-    return this.appService.deleteOrder();
+  @Get('/sum')
+  deleteOrder() {
+    this.appService.accumulate().subscribe(sum => {
+      console.log(sum)
+    })
+    
   }
-
-  @EventPattern('order.updated')
+  @EventPattern(ORDER_UPDATED)
   public async orderUpdatedHandler(
     @Payload() data: string,
     @Ctx() context: NatsJetStreamContext,
@@ -38,7 +49,7 @@ export class AppController {
     console.log('update received: ' + context.message.subject, data);
   }
 
-  @EventPattern('order.created')
+  @EventPattern(ORDER_CREATED)
   public async orderCreatedHandler(
     @Payload() data: { id: number; name: string },
     @Ctx() context: NatsJetStreamContext,
@@ -47,12 +58,11 @@ export class AppController {
     console.log('created received: ' + context.message.subject, data);
   }
 
-  @MessagePattern('order.deleted')
-  public async orderDeletedHandler(
-    @Payload() data:any,
-    @Ctx() context: NatsJetStreamContext,
+  @MessagePattern('sum')
+  public orderDeletedHandler(
+    @Payload() data: Array<number>,
+    @Ctx() context: NatsContext,
   ) {
-    context.message.ack();
-    console.log('deleted received: ' + context.message.subject, data);
+      context.message.respond(StringCodec().encode(JSON.stringify(data[0]+data[1]+data[2])));
   }
 }

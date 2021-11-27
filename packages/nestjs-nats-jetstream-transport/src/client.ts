@@ -1,12 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { ClientProxy, ReadPacket, WritePacket } from "@nestjs/microservices";
-import {
-  Codec,
-  connect,
-  NatsConnection,
-  PubAck,
-  StringCodec,
-} from "nats";
+import { Codec, connect, NatsConnection, StringCodec } from "nats";
 import { NATS_JETSTREAM_OPTIONS } from "./constants";
 import { NatsJetStreamClientOptions } from "./interfaces";
 
@@ -30,34 +24,35 @@ export class NatsJetStreamClientProxy extends ClientProxy {
     return this.nc;
   }
 
+  // TODO: Should this be drained?
   close() {
     this.nc.close();
   }
 
-  // TODO: This should be reque-replay nats
   protected publish(
     packet: ReadPacket<any>,
     callback: (packet: WritePacket<any>) => void
   ): () => void {
-    const js = this.nc.jetstream(this.options.jetStreamOption);
-    js.publish(
-      packet.pattern,
-      this.sc.encode(JSON.stringify(packet.data)),
-      this.options.jetStreamPublishOptions
-    )
-      .then((pubAck: PubAck) => {
-        callback({ response: pubAck });
+    const payload = this.sc.encode(JSON.stringify(packet.data));
+    const subject = packet.pattern;
+
+    this.nc
+      .request(subject, payload)
+      .then((msg) => this.sc.decode(msg.data) as WritePacket)
+      .then((data) => {
+        return callback({response: data})
       })
-      .catch((err) => callback(err));
-    return () => {};
+      .catch((err) => callback({ err }));
+    return () => null;
   }
 
   protected async dispatchEvent<T = any>(packet: ReadPacket<T>): Promise<any> {
-    const js = this.nc.jetstream(this.options.jetStreamOption);
-    return js.publish(
-      packet.pattern,
-      this.sc.encode(JSON.stringify(packet.data)),
-      this.options.jetStreamPublishOptions
-    );
+    const payload = this.sc.encode(JSON.stringify(packet.data));
+    const subject = packet.pattern;
+    const jetstreamOpts = this.options.jetStreamOption;
+    const jetstreamPublishOpts = this.options.jetStreamPublishOptions;
+
+    const js = this.nc.jetstream(jetstreamOpts);
+    return js.publish(subject, payload, jetstreamPublishOpts);
   }
 }

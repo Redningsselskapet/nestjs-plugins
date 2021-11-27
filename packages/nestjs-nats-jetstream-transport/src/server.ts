@@ -2,10 +2,17 @@ import {
   CustomTransportStrategy,
   MessageHandler,
   Server,
+  WritePacket,
 } from "@nestjs/microservices";
-import { Codec, connect, NatsConnection, StringCodec, SubscriptionOptions } from "nats";
+import {
+  Codec,
+  connect,
+  NatsConnection,
+  StringCodec,
+  SubscriptionOptions,
+} from "nats";
 import { NatsJetStreamServerOptions } from "./interfaces";
-import { NatsJetStreamContext } from "./nats-jetstream.context";
+import { NatsContext, NatsJetStreamContext } from "./nats-jetstream.context";
 import { serverConsumerOptionsBuilder } from "./utils/server-consumer-options-builder";
 import { from } from "rxjs";
 
@@ -48,17 +55,17 @@ export class NatsJetStreamServer
   private async bindEventHandlers() {
     const eventHandlers = this.filterEventHandlers();
     const js = this.nc.jetstream(this.options.jetStreamOptions);
-    
+    console.log(eventHandlers);
     eventHandlers.forEach(async ([subject, eventHandler]) => {
       const consumerOption = this.createConsumerOptions(subject);
       const subscription = await js.subscribe(subject, consumerOption);
-      this.logger.log(`Subscribed to ${subject} events`)
+      this.logger.log(`Subscribed to ${subject} events`);
       for await (const msg of subscription) {
         const data = JSON.parse(this.sc.decode(msg.data));
         const context = new NatsJetStreamContext([msg]);
         this.send(from(eventHandler(data, context)), () => null);
       }
-    })
+    });
   }
 
   private filterEventHandlers(): [string, MessageHandler<string, any>][] {
@@ -70,18 +77,29 @@ export class NatsJetStreamServer
 
   private bindMessageHandlers() {
     const messageHandlers = this.filterMessageHandlers();
-    messageHandlers.forEach(async ([subject, eventHandler]) => {
+
+    messageHandlers.forEach(async ([subject, messageHandler]) => {
       const subscriptionOptions: SubscriptionOptions = {
         queue: this.options.consumerOptions.deliverTo,
-        max: this.options.consumerOptions.maxMessages,
-        timeout: this.options.consumerOptions.maxWaiting,
-        callback: (err, msg) => {
-          console.log('callback');
-        }
-      }
-      const subscription = this.nc.subscribe(subject, subscriptionOptions)
-      this.logger.log(`Subscribed to ${subject} messages`)
-    })
+        //max: 1,
+        //timeout: 5000,
+        callback: async (err, msg) => {
+          if (err) {
+            return this.logger.error(err.message, err.stack);
+          }
+          const payload = JSON.parse(this.sc.decode(msg.data));
+          const context = new NatsContext([msg]);
+          const response$ = this.transformToObservable(
+            messageHandler(payload, context)
+          );
+          return this.send(response$, (response) =>
+            msg.respond(this.sc.encode(JSON.stringify(response)))
+          );
+        },
+      };
+      this.nc.subscribe(subject, subscriptionOptions);
+      this.logger.log(`Subscribed to ${subject} messages`);
+    });
   }
 
   private filterMessageHandlers() {
