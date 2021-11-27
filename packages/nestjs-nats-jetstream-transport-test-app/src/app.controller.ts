@@ -12,7 +12,13 @@ import {
 import { AppService } from './app.service';
 import { ORDER_CREATED, ORDER_DELETED, ORDER_UPDATED } from './constants';
 import { StringCodec } from 'nats';
-import { Observable } from 'rxjs';
+import {
+  firstValueFrom,
+  lastValueFrom,
+  map,
+  Observable,
+  subscribeOn,
+} from 'rxjs';
 import { Response } from '@nestjs/common';
 @Controller()
 export class AppController {
@@ -34,11 +40,14 @@ export class AppController {
   }
 
   @Get('/sum')
-  deleteOrder() {
-    this.appService.accumulate().subscribe(sum => {
-      console.log(sum)
-    })
-    
+  async deleteOrder() {
+    const sum = await firstValueFrom(
+      this.appService.accumulate([1, 2, 3]),
+    ).finally(() => {
+      console.log('finnish');
+    });
+    console.log(sum);
+    return { sum };
   }
   @EventPattern(ORDER_UPDATED)
   public async orderUpdatedHandler(
@@ -63,6 +72,7 @@ export class AppController {
     @Payload() data: Array<number>,
     @Ctx() context: NatsContext,
   ) {
-      context.message.respond(StringCodec().encode(JSON.stringify(data[0]+data[1]+data[2])));
+    console.log('regnemaskinen jobber...');
+    context.message.respond(StringCodec().encode(JSON.stringify(data.reduce((a, b) => a + b))));
   }
 }
