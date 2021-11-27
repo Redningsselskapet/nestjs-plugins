@@ -35,14 +35,12 @@ export class NatsJetStreamClientProxy extends ClientProxy {
     callback: (packet: WritePacket<any>) => void
   ): () => void {
     const payload = this.sc.encode(JSON.stringify(packet.data));
-    const subject = packet.pattern;
+    const subject = this.normalizePattern(packet.pattern);
 
     this.nc
       .request(subject, payload)
-      .then((msg) => this.sc.decode(msg.data) as WritePacket)
-      .then((data) => {
-        return callback({response: data})
-      })
+      .then((msg) => JSON.parse(this.sc.decode(msg.data)) as WritePacket)
+      .then((packet) => callback(packet))
       .catch((err) => callback({ err }));
     return () => null;
   }
