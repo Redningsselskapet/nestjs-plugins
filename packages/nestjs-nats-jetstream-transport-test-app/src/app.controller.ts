@@ -59,21 +59,10 @@ export class AppController {
     @Payload() data: { id: number; name: string },
     @Ctx() context: NatsJetStreamContext,
   ) {
+    console.log()
     context.message.ack();
-    context.message.nak();
     console.log('created received: ' + context.message.subject, data);
   }
-
-  // @MessagePattern('sum')
-  // public orderDeletedHandler(
-  //   @Payload() data: Array<number>,
-  //   @Ctx() context: NatsContext,
-  // ) {
-  //   console.log('The computer is calculating...');
-  //   context.message.respond(
-  //     StringCodec().encode(JSON.stringify(data.reduce((a, b) => a + b))),
-  //   );
-  // }
 
   @MessagePattern({ cmd: 'sum' })
   async accumulate(data: number[]): Promise<number> {

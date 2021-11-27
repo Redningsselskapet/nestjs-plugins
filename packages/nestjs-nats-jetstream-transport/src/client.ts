@@ -7,14 +7,12 @@ import { NatsJetStreamClientOptions } from "./interfaces";
 @Injectable()
 export class NatsJetStreamClientProxy extends ClientProxy {
   private nc: NatsConnection;
-  private sc: Codec<string>;
   private jsonCodec: Codec<JSON>;
 
   constructor(
     @Inject(NATS_JETSTREAM_OPTIONS) private options: NatsJetStreamClientOptions
   ) {
     super();
-    this.sc = StringCodec();
     this.jsonCodec = JSONCodec();
   }
 
@@ -47,9 +45,9 @@ export class NatsJetStreamClientProxy extends ClientProxy {
     return () => null;
   }
 
-  protected async dispatchEvent<T = any>(packet: ReadPacket<T>): Promise<any> {
-    const payload = this.sc.encode(JSON.stringify(packet.data));
-    const subject = packet.pattern;
+  protected async dispatchEvent(packet: ReadPacket): Promise<any> {
+    const payload = this.jsonCodec.encode(packet.data);
+    const subject = this.normalizePattern(packet.pattern);
     const jetstreamOpts = this.options.jetStreamOption;
     const jetstreamPublishOpts = this.options.jetStreamPublishOptions;
 

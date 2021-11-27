@@ -41,13 +41,6 @@ export class AppService {
     return 'order updated';
   }
 
-  deleteOrder(): string {
-    this.client
-      .send<any, { a: number; b: number }>(ORDER_DELETED, { a: 1, b: 200 })
-      .subscribe((r) => console.log(r));
-    return 'sending deleted';
-  }
-
   accumulate(payload: number[]): Observable<number> {
     const pattern = { cmd: 'sum' };
     return this.client.send<number>(pattern, payload);
