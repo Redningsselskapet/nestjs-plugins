@@ -3,7 +3,7 @@
 import { NatsJetStreamClientProxy } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Injectable } from '@nestjs/common';
 import { PubAck, StringCodec } from 'nats';
-import { map, Observable, switchMap } from 'rxjs';
+import { map, Observable, switchMap, tap } from 'rxjs';
 import { ORDER_CREATED, ORDER_DELETED, ORDER_UPDATED } from './constants';
 
 interface OrderCreatedEvent {
@@ -48,7 +48,8 @@ export class AppService {
     return 'sending deleted';
   }
 
-  accumulate(num: number[]) {
-    return this.client.send<number>('sum', num)
+  accumulate(payload: number[]): Observable<number> {
+    const pattern = { cmd: 'sum' };
+    return this.client.send<number>(pattern, payload);
   }
 }

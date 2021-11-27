@@ -40,15 +40,11 @@ export class AppController {
   }
 
   @Get('/sum')
-  async deleteOrder() {
-    const sum = await firstValueFrom(
-      this.appService.accumulate([1, 2, 3]),
-    ).finally(() => {
-      console.log('finnish');
-    });
-    console.log(sum);
-    return { sum };
+  calc() {
+    console.log('sum controller')
+    return this.appService.accumulate([1,2,3])
   }
+  
   @EventPattern(ORDER_UPDATED)
   public async orderUpdatedHandler(
     @Payload() data: string,
@@ -64,16 +60,24 @@ export class AppController {
     @Ctx() context: NatsJetStreamContext,
   ) {
     context.message.ack();
-    context.message.nak()
+    context.message.nak();
     console.log('created received: ' + context.message.subject, data);
   }
 
-  @MessagePattern('sum')
-  public orderDeletedHandler(
-    @Payload() data: Array<number>,
-    @Ctx() context: NatsContext,
-  ) {
-    console.log('The computer is calculating...');
-    context.message.respond(StringCodec().encode(JSON.stringify(data.reduce((a, b) => a + b))));
+  // @MessagePattern('sum')
+  // public orderDeletedHandler(
+  //   @Payload() data: Array<number>,
+  //   @Ctx() context: NatsContext,
+  // ) {
+  //   console.log('The computer is calculating...');
+  //   context.message.respond(
+  //     StringCodec().encode(JSON.stringify(data.reduce((a, b) => a + b))),
+  //   );
+  // }
+
+  @MessagePattern({ cmd: 'sum' })
+  async accumulate(data: number[]): Promise<number> {
+    console.log('message conroller', data)
+    return (data || []).reduce((a, b) => a + b);
   }
 }
