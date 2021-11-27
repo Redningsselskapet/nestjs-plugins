@@ -11,7 +11,7 @@ Build Event Driven Microservices Architecture with Nats JetSteam Server and Nest
 - Horizontal scalability
 - Persist Streams and replay via Consumers
 
-
+> Support for both request-response and event based pattern.
 
 ## 📦 Install
 
@@ -21,15 +21,11 @@ npm i nats
 npm i @nestjs-plugins/nestjs-nats-jetstream-transport
 ```
 
-
-
 ## 🐳 Running Nats Jetstream server in Docker
 
 ```bash
 docker run -d --name nats-main -p 4222:4222 -p 6222:6222 -p 8222:8222 nats -js -m 8222
 ```
-
-
 
 ## ⚙️ Manage nats server from command line
 
@@ -55,8 +51,6 @@ For the rest of the choices just press enter and use the defaults.
 
 You are now ready to publish and consume events on the stream. See the [code example](#Code-example) below for a test drive.
 
-
-
 ## 📖 Description - configuration objects
 
 ### NatsJetStreamServerOptions
@@ -66,15 +60,11 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **serverConsumerOptions**: ServerConsumerOptions 
 - **jetStreamOptions**: JetStreamOption
 
-
-
 ### NatsJetStreamClientOptions
 
 - **connectionOptions**: ConnectionOptions
 - **jetStreamOptions**: JetStreamOptions
 - **jetStreamPublishOptions**: JetStreamPublishOptions
-
-
 
 ### ServerConsumerOptions
 
@@ -102,8 +92,6 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **orderedConsumer**: boolean - a specialized push consumer that puts together flow control, heartbeats, and additional logic to handle message gaps. Ordered consumers cannot operate on a queue and cannot be durable.
 - **deliverGroup**: string - when set will only deliver messages to subscriptions matching that group.
 - **headersOnly**: boolean - configures the consumer to only deliver existing header and the `Nats-Msg-Size` header, no bodies.
-
-
 
 ### ConnectionOptions
 
@@ -133,15 +121,11 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **verbose**: boolean (default: false) - Turns on `+OK` protocol acknowledgements.
 - **waitOnFirstConnect**: boolean (default: false) - If `true` the client will fall back to a reconnect mode if it fails its first connection attempt.
 
-
-
 ### JetStreamOptions
 
 - **apiPrefix**: string - *Not documented!*
 - **domain**: string - Sets the domain for JetStream subjects, creating a standard prefix from that domain.
 - **timeout**: number - Sets the request timeout for JetStream API calls.
-
-
 
 ### JetStreamPublishOption
 
@@ -150,8 +134,6 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **headers**: ?
 - **msgID**: string - provide your own unique message ID for every message published.
 - **timeout**: number
-
-
 
 ## Code example
 
@@ -175,7 +157,6 @@ import { NatsJetStreamTransport } from '@nestjs-plugins/nestjs-nats-jetstream-tr
   providers: [AppService],
 })
 export class AppModule {}
-
 ```
 
 ```typescript
@@ -237,7 +218,6 @@ export class AppService {
     return 'order deleted';
   }
 }
-
 ```
 
 ```typescript
@@ -299,7 +279,6 @@ export class AppController {
     console.log('received: ' + context.message.subject, data);
   }
 }
-
 ```
 
 ```typescript
