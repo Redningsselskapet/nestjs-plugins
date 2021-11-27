@@ -81,8 +81,6 @@ export class NatsJetStreamServer
     messageHandlers.forEach(async ([subject, messageHandler]) => {
       const subscriptionOptions: SubscriptionOptions = {
         queue: this.options.consumerOptions.deliverTo,
-        //max: 1,
-        //timeout: 5000,
         callback: async (err, msg) => {
           if (err) {
             return this.logger.error(err.message, err.stack);
