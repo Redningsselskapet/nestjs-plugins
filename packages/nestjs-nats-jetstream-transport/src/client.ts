@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { ClientProxy, ReadPacket, WritePacket } from "@nestjs/microservices";
-import { Codec, connect, NatsConnection, StringCodec } from "nats";
+import { Codec, connect, JSONCodec, NatsConnection, StringCodec } from "nats";
 import { NATS_JETSTREAM_OPTIONS } from "./constants";
 import { NatsJetStreamClientOptions } from "./interfaces";
 
@@ -8,12 +8,14 @@ import { NatsJetStreamClientOptions } from "./interfaces";
 export class NatsJetStreamClientProxy extends ClientProxy {
   private nc: NatsConnection;
   private sc: Codec<string>;
+  private jsonCodec: Codec<JSON>;
 
   constructor(
     @Inject(NATS_JETSTREAM_OPTIONS) private options: NatsJetStreamClientOptions
   ) {
     super();
     this.sc = StringCodec();
+    this.jsonCodec = JSONCodec();
   }
 
   async connect(): Promise<NatsConnection> {
@@ -26,7 +28,7 @@ export class NatsJetStreamClientProxy extends ClientProxy {
 
   // TODO: Should this be drained?
   async close() {
-    await this.nc.drain()
+    await this.nc.drain();
     this.nc.close();
   }
 
@@ -34,12 +36,12 @@ export class NatsJetStreamClientProxy extends ClientProxy {
     packet: ReadPacket<any>,
     callback: (packet: WritePacket<any>) => void
   ): () => void {
-    const payload = this.sc.encode(JSON.stringify(packet.data));
+    const payload = this.jsonCodec.encode(packet.data);
     const subject = this.normalizePattern(packet.pattern);
 
     this.nc
       .request(subject, payload)
-      .then((msg) => JSON.parse(this.sc.decode(msg.data)) as WritePacket)
+      .then((msg) => this.jsonCodec.decode(msg.data) as WritePacket)
       .then((packet) => callback(packet))
       .catch((err) => callback({ err }));
     return () => null;
