@@ -10,12 +10,12 @@ async function bootstrap() {
     strategy: new NatsJetStreamServer({
       id: 'test-service',
       connectionOptions: {
-        name: 'test-service-consumer'
+        name: 'test-service'
       },
       consumerOptions: {
         deliverGroup: 'test-service',
         durable: true,
-        deliverTo: 'myservice-inbox',
+        deliverTo: 'test-service',
         manualAck: true,
       },
     }),

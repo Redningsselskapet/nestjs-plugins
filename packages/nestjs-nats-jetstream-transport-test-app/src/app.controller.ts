@@ -59,7 +59,6 @@ export class AppController {
     @Payload() data: { id: number; name: string },
     @Ctx() context: NatsJetStreamContext,
   ) {
-    console.log()
     context.message.ack();
     console.log('created received: ' + context.message.subject, data);
   }
