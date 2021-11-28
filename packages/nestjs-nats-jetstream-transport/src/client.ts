@@ -24,7 +24,6 @@ export class NatsJetStreamClientProxy extends ClientProxy {
     return this.nc;
   }
 
-  // TODO: Should this be drained?
   async close() {
     await this.nc.drain();
     this.nc.close();
