@@ -2,11 +2,13 @@ import {
   CustomTransportStrategy,
   MessageHandler,
   Server,
+  WritePacket,
 } from "@nestjs/microservices";
 import {
   Codec,
   connect,
   ConsumerOptsBuilder,
+  JSONCodec,
   NatsConnection,
   StringCodec,
   SubscriptionOptions,
@@ -21,11 +23,11 @@ export class NatsJetStreamServer
   implements CustomTransportStrategy
 {
   private nc: NatsConnection;
-  private sc: Codec<string>;
+  private jsonCodec: Codec<JSON>;
 
   constructor(private options: NatsJetStreamServerOptions) {
     super();
-    this.sc = StringCodec();
+    this.jsonCodec = JSONCodec();
   }
 
   async listen(callback: () => null) {
@@ -62,14 +64,14 @@ export class NatsJetStreamServer
       const subscription = await js.subscribe(subject, consumerOptions);
       this.logger.log(`Subscribed to ${subject} events`);
       for await (const msg of subscription) {
-        const data = JSON.parse(this.sc.decode(msg.data));
+        const data = this.jsonCodec.decode(msg.data);
         const context = new NatsJetStreamContext([msg]);
         this.send(from(eventHandler(data, context)), () => null);
       }
     });
   }
 
-  private filterEventHandlers(): [string, MessageHandler<string, any>][] {
+  private filterEventHandlers(): [string, MessageHandler<any, any>][] {
     const eventHandlers = [...this.messageHandlers.entries()].filter(
       ([, handler]) => handler.isEventHandler
     );
@@ -85,13 +87,13 @@ export class NatsJetStreamServer
           if (err) {
             return this.logger.error(err.message, err.stack);
           }
-          const payload = JSON.parse(this.sc.decode(msg.data));
+          const payload = this.jsonCodec.decode(msg.data);
           const context = new NatsContext([msg]);
           const response$ = this.transformToObservable(
             messageHandler(payload, context)
           );
-          return this.send(response$, (response) =>
-            msg.respond(this.sc.encode(JSON.stringify(response)))
+          this.send(response$, (response) =>
+            msg.respond(this.jsonCodec.encode(response as JSON))
           );
         },
       };
