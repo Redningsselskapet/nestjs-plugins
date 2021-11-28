@@ -2,7 +2,6 @@ import {
   CustomTransportStrategy,
   MessageHandler,
   Server,
-  WritePacket,
 } from "@nestjs/microservices";
 import {
   Codec,
@@ -55,10 +54,10 @@ export class NatsJetStreamServer
   private async bindEventHandlers() {
     const eventHandlers = this.filterEventHandlers();
     const js = this.nc.jetstream(this.options.jetStreamOptions);
-    console.log(eventHandlers);
+
     eventHandlers.forEach(async ([subject, eventHandler]) => {
-      const consumerOption = this.createConsumerOptions(subject);
-      const subscription = await js.subscribe(subject, consumerOption);
+      const consumerOptions = this.createConsumerOptions(subject);
+      const subscription = await js.subscribe(subject, consumerOptions);
       this.logger.log(`Subscribed to ${subject} events`);
       for await (const msg of subscription) {
         const data = JSON.parse(this.sc.decode(msg.data));
@@ -77,7 +76,6 @@ export class NatsJetStreamServer
 
   private bindMessageHandlers() {
     const messageHandlers = this.filterMessageHandlers();
-
     messageHandlers.forEach(async ([subject, messageHandler]) => {
       const subscriptionOptions: SubscriptionOptions = {
         queue: this.options.consumerOptions.deliverTo,
