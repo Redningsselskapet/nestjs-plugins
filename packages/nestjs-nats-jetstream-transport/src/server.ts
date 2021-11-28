@@ -6,6 +6,7 @@ import {
 import {
   Codec,
   connect,
+  ConsumerOptsBuilder,
   NatsConnection,
   StringCodec,
   SubscriptionOptions,
@@ -41,7 +42,8 @@ export class NatsJetStreamServer
     await this.nc.close();
   }
 
-  private createConsumerOptions(subject: string) {
+  // TODO: better naming. All this do is creating durable name and returns a builder.
+  private createConsumerOptions(subject: string): ConsumerOptsBuilder {
     const opts = serverConsumerOptionsBuilder(this.options.consumerOptions);
     if (this.options.consumerOptions.durable) {
       opts.durable(
