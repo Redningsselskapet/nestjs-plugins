@@ -11,10 +11,11 @@ import {
   SubscriptionOptions,
   JSONCodec,
 } from "nats";
-import { NatsJetStreamServerOptions } from "./interfaces";
+
 import { NatsContext, NatsJetStreamContext } from "./nats-jetstream.context";
 import { serverConsumerOptionsBuilder } from "./utils/server-consumer-options-builder";
 import { from } from "rxjs";
+import { NatsJetStreamServerOptions } from "./interfaces/nats-jetstream-server-options.interface";
 
 export class NatsJetStreamServer
   extends Server
@@ -39,7 +40,8 @@ export class NatsJetStreamServer
   }
 
   async close() {
-    await this.nc.close();
+    await this.nc.drain()
+    this.nc.close();
   }
 
   private createConsumerOptions(subject: string): ConsumerOptsBuilder {
@@ -53,13 +55,18 @@ export class NatsJetStreamServer
   }
 
   private async bindEventHandlers() {
-    const eventHandlers = this.filterEventHandlers();
+    const eventHandlers = [...this.messageHandlers.entries()].filter(
+      ([, handler]) => handler.isEventHandler
+    );
+
     const js = this.nc.jetstream(this.options.jetStreamOptions);
 
     eventHandlers.forEach(async ([subject, eventHandler]) => {
       const consumerOptions = this.createConsumerOptions(subject);
       const subscription = await js.subscribe(subject, consumerOptions);
+
       this.logger.log(`Subscribed to ${subject} events`);
+
       for await (const msg of subscription) {
         try {
           const data = this.codec.decode(msg.data);
@@ -75,17 +82,14 @@ export class NatsJetStreamServer
     });
   }
 
-  private filterEventHandlers(): [string, MessageHandler<any, any>][] {
-    const eventHandlers = [...this.messageHandlers.entries()].filter(
-      ([, handler]) => handler.isEventHandler
-    );
-    return eventHandlers;
-  }
-
   private bindMessageHandlers() {
-    const messageHandlers = this.filterMessageHandlers();
+    const messageHandlers = [...this.messageHandlers.entries()].filter(
+      ([, handler]) => !handler.isEventHandler
+    );
+
     messageHandlers.forEach(async ([subject, messageHandler]) => {
       const subscriptionOptions: SubscriptionOptions = {
+        // use the same inbox as event messages.
         queue: this.options.consumerOptions.deliverTo,
         callback: async (err, msg) => {
           if (err) {
@@ -101,15 +105,9 @@ export class NatsJetStreamServer
           );
         },
       };
+
       this.nc.subscribe(subject, subscriptionOptions);
       this.logger.log(`Subscribed to ${subject} messages`);
     });
-  }
-
-  private filterMessageHandlers() {
-    const eventHandlers = [...this.messageHandlers.entries()].filter(
-      ([, handler]) => !handler.isEventHandler
-    );
-    return eventHandlers;
   }
 }

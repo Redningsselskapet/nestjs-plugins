@@ -1,5 +1,6 @@
 import { consumerOpts, createInbox } from "nats";
-import { ServerConsumerOptions } from "src/interfaces";
+import { ServerConsumerOptions } from "src/interfaces/server-consumer-options.interface";
+
 
 export function serverConsumerOptionsBuilder(
   serverConsumerOptions: ServerConsumerOptions
