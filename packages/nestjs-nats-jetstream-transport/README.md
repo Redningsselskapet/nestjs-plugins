@@ -292,12 +292,12 @@ import { NatsJetStreamServer } from '@nestjs-plugins/nestjs-nats-jetstream-trans
 async function bootstrap() {
   const options: CustomStrategy = {
     strategy: new NatsJetStreamServer({
-      id: 'test-service',
+      id: 'my-service',
       connectionOptions: {},
       consumerOptions: {
-        deliverGroup: 'test-service',
+        deliverGroup: 'test-service-group',
         durable: true,
-        deliverTo: 'myservice-inbox',
+        deliverTo: 'my-service',
         manualAck: true,
       },
     }),
