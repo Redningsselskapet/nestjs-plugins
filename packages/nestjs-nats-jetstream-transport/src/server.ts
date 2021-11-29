@@ -44,16 +44,6 @@ export class NatsJetStreamServer
     this.nc.close();
   }
 
-  // private createConsumerOptions(subject: string): ConsumerOptsBuilder {
-  //   const opts = serverConsumerOptionsBuilder(this.options.consumerOptions);
-  //   if (this.options.consumerOptions.durable) {
-  //     opts.durable(
-  //       `${this.options.id}-${subject.replace(".", "_").replace("*", "_ALL")}`
-  //     );
-  //   }
-  //   return opts;
-  // }
-
   private async bindEventHandlers() {
     const eventHandlers = [...this.messageHandlers.entries()].filter(
       ([, handler]) => handler.isEventHandler
@@ -66,6 +56,7 @@ export class NatsJetStreamServer
         this.options.consumerOptions,
         subject
       );
+      console.log(consumerOptions)
       const subscription = await js.subscribe(subject, consumerOptions);
 
       this.logger.log(`Subscribed to ${subject} events`);
