@@ -13,7 +13,7 @@ async function bootstrap() {
         name: 'test-service'
       },
       consumerOptions: {
-        deliverGroup: 'test-service',
+        deliverGroup: 'test-service-group',
         durable: true,
         deliverTo: 'test-service',
         manualAck: true,
