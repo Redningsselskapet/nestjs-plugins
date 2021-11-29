@@ -55,7 +55,6 @@ You are now ready to publish and consume events on the stream. See the [code exa
 
 ### NatsJetStreamServerOptions
 
-- **id**: string
 - **connectionOptions**: ConnectionOptions 
 - **serverConsumerOptions**: ServerConsumerOptions 
 - **jetStreamOptions**: JetStreamOption
@@ -68,12 +67,12 @@ You are now ready to publish and consume events on the stream. See the [code exa
 
 ### ServerConsumerOptions
 
-- **durable**: boolean (default: false) - Durable subscriptions remember their position even if the client is disconnected.
+- **durable**: string - Durable subscriptions remember their position even if the client is disconnected.
 - **deliveryPolicy**: All | Last | New | ByStartSequence | ByStartTime | last_per_subject (default: All) - Specify where in the stream it wants to start receiving messages.
 - **startSequence**: number - If deliveryPolicy is set to ByStartSequence this will specify the sequence number to start on.
 - **startAtTimeDelta**: number - If If deliveryPolicy is set to ByStartTime this will specify a delta time in the stream at which to start.
 - **startTime**: Date - If deliveryPolicy is set to ByStartTime this will specify the time in the stream at which to start. It will receive the closest available message on or after that time.
-- **deliverTo**: string - Queue group, a balanced message delivery across a group of subscribers.
+- **deliverTo**: string - Creates a unique delivery_subject prefix with this.
 - **deliverToSubject**: string - The subject to deliver observed messages. Not allowed for pull subscriptions. Deliver subject is required for queue subscribing as it configures a subject that all the queue consumers should listen on.
 - **ackPolicy**: Explicit | All | None (default: Excplicit ) - How messages should be acknowledged. If an ack is required but is not received within the AckWait window, the message will be redelivered. Excplicit is the only allowed option for pull consumers.
 - **ackWait**: number (default: 30000 ) - the time in nanoseconds that the server will wait for an ack for any individual message. If an ack is not received in time, the message will be redelivered.
@@ -149,7 +148,8 @@ import { NatsJetStreamTransport } from '@nestjs-plugins/nestjs-nats-jetstream-tr
   imports: [
     NatsJetStreamTransport.register({
       connectionOptions: {
-        servers: '127.0.0.1'
+        servers: 'localhost:4222',
+        name: 'myservice-publisher'
       }
     }),
   ],
@@ -312,12 +312,14 @@ import { NatsJetStreamServer } from '@nestjs-plugins/nestjs-nats-jetstream-trans
 async function bootstrap() {
   const options: CustomStrategy = {
     strategy: new NatsJetStreamServer({
-      id: 'my-service',
-      connectionOptions: {},
+      connectionOptions: {
+        servers: 'localhost'
+        name: 'myservice-listener'
+      },
       consumerOptions: {
-        deliverGroup: 'test-service-group',
+        deliverGroup: 'myservice-group',
         durable: true,
-        deliverTo: 'my-service',
+        deliverTo: 'myservice',
         manualAck: true,
       },
     }),
