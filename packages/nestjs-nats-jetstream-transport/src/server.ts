@@ -2,14 +2,12 @@ import {
   CustomTransportStrategy,
   MessageHandler,
   Server,
-  WritePacket,
 } from "@nestjs/microservices";
 import {
   Codec,
   connect,
   ConsumerOptsBuilder,
   NatsConnection,
-  StringCodec,
   SubscriptionOptions,
   JSONCodec,
 } from "nats";
@@ -44,7 +42,6 @@ export class NatsJetStreamServer
     await this.nc.close();
   }
 
-  // TODO: better naming. All this do is creating durable name and returns a builder.
   private createConsumerOptions(subject: string): ConsumerOptsBuilder {
     const opts = serverConsumerOptionsBuilder(this.options.consumerOptions);
     if (this.options.consumerOptions.durable) {
@@ -70,7 +67,7 @@ export class NatsJetStreamServer
           this.send(from(eventHandler(data, context)), () => null);
         } catch (err) {
           this.logger.error(err.message, err.stack);
-          // specifies that you failed to process the server and instructs 
+          // specifies that you failed to process the server and instructs
           // the server to not send it againn (to any consumer)
           msg.term();
         }
