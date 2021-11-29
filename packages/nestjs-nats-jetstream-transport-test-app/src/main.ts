@@ -8,9 +8,11 @@ import { NatsJetStreamServer } from '@nestjs-plugins/nestjs-nats-jetstream-trans
 async function bootstrap() {
   const options: CustomStrategy = {
     strategy: new NatsJetStreamServer({
-      connectionOptions: {},
+      connectionOptions: {
+        name: 'myservice-listener'
+      },
       consumerOptions: {
-        deliverGroup: 'test-service-group',
+        deliverGroup: 'myservice-group',
         durable: 'myservice',
         deliverTo: 'test-service',
         manualAck: true,
