@@ -7,13 +7,13 @@ import { NatsJetStreamClientOptions } from "./interfaces";
 @Injectable()
 export class NatsJetStreamClientProxy extends ClientProxy {
   private nc: NatsConnection;
-  private jsonCodec: Codec<JSON>;
+  private codec: Codec<JSON>;
 
   constructor(
     @Inject(NATS_JETSTREAM_OPTIONS) private options: NatsJetStreamClientOptions
   ) {
     super();
-    this.jsonCodec = JSONCodec();
+    this.codec = JSONCodec()
   }
 
   async connect(): Promise<NatsConnection> {
@@ -33,19 +33,19 @@ export class NatsJetStreamClientProxy extends ClientProxy {
     packet: ReadPacket<any>,
     callback: (packet: WritePacket<any>) => void
   ): () => void {
-    const payload = this.jsonCodec.encode(packet.data);
+    const payload = this.codec.encode(packet.data);
     const subject = this.normalizePattern(packet.pattern);
 
     this.nc
       .request(subject, payload)
-      .then((msg) => this.jsonCodec.decode(msg.data) as WritePacket)
+      .then((msg) => this.codec.decode(msg.data) as WritePacket)
       .then((packet) => callback(packet))
       .catch((err) => callback({ err }));
     return () => null;
   }
 
   protected async dispatchEvent(packet: ReadPacket): Promise<any> {
-    const payload = this.jsonCodec.encode(packet.data);
+    const payload = this.codec.encode(packet.data);
     const subject = this.normalizePattern(packet.pattern);
     const jetstreamOpts = this.options.jetStreamOption;
     const jetstreamPublishOpts = this.options.jetStreamPublishOptions;

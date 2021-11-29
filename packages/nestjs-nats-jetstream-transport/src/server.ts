@@ -8,10 +8,10 @@ import {
   Codec,
   connect,
   ConsumerOptsBuilder,
-  JSONCodec,
   NatsConnection,
   StringCodec,
   SubscriptionOptions,
+  JSONCodec,
 } from "nats";
 import { NatsJetStreamServerOptions } from "./interfaces";
 import { NatsContext, NatsJetStreamContext } from "./nats-jetstream.context";
@@ -23,11 +23,11 @@ export class NatsJetStreamServer
   implements CustomTransportStrategy
 {
   private nc: NatsConnection;
-  private jsonCodec: Codec<JSON>;
+  private codec: Codec<JSON>;
 
   constructor(private options: NatsJetStreamServerOptions) {
     super();
-    this.jsonCodec = JSONCodec();
+    this.codec = JSONCodec();
   }
 
   async listen(callback: () => null) {
@@ -64,9 +64,16 @@ export class NatsJetStreamServer
       const subscription = await js.subscribe(subject, consumerOptions);
       this.logger.log(`Subscribed to ${subject} events`);
       for await (const msg of subscription) {
-        const data = this.jsonCodec.decode(msg.data);
-        const context = new NatsJetStreamContext([msg]);
-        this.send(from(eventHandler(data, context)), () => null);
+        try {
+          const data = this.codec.decode(msg.data);
+          const context = new NatsJetStreamContext([msg]);
+          this.send(from(eventHandler(data, context)), () => null);
+        } catch (err) {
+          this.logger.error(err.message, err.stack);
+          // specifies that you failed to process the server and instructs 
+          // the server to not send it againn (to any consumer)
+          msg.term();
+        }
       }
     });
   }
@@ -87,13 +94,13 @@ export class NatsJetStreamServer
           if (err) {
             return this.logger.error(err.message, err.stack);
           }
-          const payload = this.jsonCodec.decode(msg.data);
+          const payload = this.codec.decode(msg.data);
           const context = new NatsContext([msg]);
           const response$ = this.transformToObservable(
             messageHandler(payload, context)
           );
           this.send(response$, (response) =>
-            msg.respond(this.jsonCodec.encode(response as JSON))
+            msg.respond(this.codec.encode(response as JSON))
           );
         },
       };
