@@ -2,7 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { ClientProxy, ReadPacket, WritePacket } from "@nestjs/microservices";
 import { Codec, connect, JSONCodec, NatsConnection, StringCodec } from "nats";
 import { NATS_JETSTREAM_OPTIONS } from "./constants";
-import { NatsJetStreamClientOptions } from "./interfaces";
+import { NatsJetStreamClientOptions } from "./interfaces/nats-jetstream-client-options.interface";
 
 @Injectable()
 export class NatsJetStreamClientProxy extends ClientProxy {

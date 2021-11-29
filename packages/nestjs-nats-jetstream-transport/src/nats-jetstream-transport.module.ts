@@ -1,7 +1,7 @@
 import { DynamicModule } from "@nestjs/common";
 import { NatsJetStreamClientProxy } from "./client";
 import { NATS_JETSTREAM_OPTIONS } from "./constants";
-import { NatsJetStreamClientOptions } from "./interfaces";
+import { NatsJetStreamClientOptions } from "./interfaces/nats-jetstream-client-options.interface";
 
 export class NatsJetStreamTransport {
   static register(options: NatsJetStreamClientOptions): DynamicModule {
