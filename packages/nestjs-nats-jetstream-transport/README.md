@@ -217,6 +217,12 @@ export class AppService {
       });
     return 'order deleted';
   }
+
+  // request - response
+  accumulate(payload: number[]): Observable<number> {
+    const pattern = { cmd: 'sum' };
+    return this.client.send<number>(pattern, payload);
+  }
 }
 ```
 
@@ -252,6 +258,13 @@ export class AppController {
     return this.appService.deleteOrder();
   }
 
+  // request - response
+  @Get('/sum')
+  calc() {
+    console.log('sum controller')
+    return this.appService.accumulate([1,2,3])
+  }
+
   @EventPattern('order.updated')
   public async orderUpdatedHandler(
     @Payload() data: string,
@@ -277,6 +290,13 @@ export class AppController {
   ) {
     context.message.ack();
     console.log('received: ' + context.message.subject, data);
+  }
+
+  // request - response
+  @MessagePattern({ cmd: 'sum' })
+  async accumulate(data: number[]): Promise<number> {
+    console.log('message conroller', data)
+    return (data || []).reduce((a, b) => a + b);
   }
 }
 ```

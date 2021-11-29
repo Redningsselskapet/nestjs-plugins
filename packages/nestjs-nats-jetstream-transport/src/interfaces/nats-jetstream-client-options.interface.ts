@@ -2,7 +2,7 @@ import { ModuleMetadata } from "@nestjs/common";
 import { ConnectionOptions, JetStreamOptions, JetStreamPublishOptions } from "nats";
 
 export interface NatsJetStreamClientOptions {
-  connectionOptions: ConnectionOptions;
+  connectionOptions: ConnectionOptions & Pick<ConnectionOptions, 'name'>;
   jetStreamOption?: JetStreamOptions;
   jetStreamPublishOptions?: JetStreamPublishOptions;
 }

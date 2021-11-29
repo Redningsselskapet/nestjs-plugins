@@ -1,6 +1,6 @@
 export interface ServerConsumerOptions {
   // https://nats.io/blog/jetstream-java-client-03-consume/
-  durable?: boolean;
+  durable?: string;
   deliverPolicy?:
     | "All"
     | "Last"

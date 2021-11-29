@@ -3,7 +3,7 @@ import { ServerConsumerOptions } from "src/interfaces/server-consumer-options.in
 
 
 export function serverConsumerOptionsBuilder(
-  serverConsumerOptions: ServerConsumerOptions
+  serverConsumerOptions: ServerConsumerOptions, subject: string
 ) {
   const {
     deliverGroup,
@@ -13,7 +13,7 @@ export function serverConsumerOptionsBuilder(
     ackPolicy,
     deliverPolicy,
     description,
-    // durable,
+    durable,
     filterSubject,
     flowControl,
     headersOnly,
@@ -46,7 +46,7 @@ export function serverConsumerOptionsBuilder(
   deliverTo && opts.deliverTo(createInbox(deliverTo));
 
   description && opts.description(description);
-  // durable && opts.durable('')
+  durable && opts.durable(`${durable}-${subject.replace(".", "_").replace("*", "_ALL")}`)
   filterSubject && opts.filterSubject(filterSubject);
   flowControl && opts.flowControl();
   headersOnly && opts.headersOnly();

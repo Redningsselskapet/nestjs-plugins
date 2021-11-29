@@ -40,19 +40,19 @@ export class NatsJetStreamServer
   }
 
   async close() {
-    await this.nc.drain()
+    await this.nc.drain();
     this.nc.close();
   }
 
-  private createConsumerOptions(subject: string): ConsumerOptsBuilder {
-    const opts = serverConsumerOptionsBuilder(this.options.consumerOptions);
-    if (this.options.consumerOptions.durable) {
-      opts.durable(
-        `${this.options.id}-${subject.replace(".", "_").replace("*", "_ALL")}`
-      );
-    }
-    return opts;
-  }
+  // private createConsumerOptions(subject: string): ConsumerOptsBuilder {
+  //   const opts = serverConsumerOptionsBuilder(this.options.consumerOptions);
+  //   if (this.options.consumerOptions.durable) {
+  //     opts.durable(
+  //       `${this.options.id}-${subject.replace(".", "_").replace("*", "_ALL")}`
+  //     );
+  //   }
+  //   return opts;
+  // }
 
   private async bindEventHandlers() {
     const eventHandlers = [...this.messageHandlers.entries()].filter(
@@ -62,7 +62,10 @@ export class NatsJetStreamServer
     const js = this.nc.jetstream(this.options.jetStreamOptions);
 
     eventHandlers.forEach(async ([subject, eventHandler]) => {
-      const consumerOptions = this.createConsumerOptions(subject);
+      const consumerOptions = serverConsumerOptionsBuilder(
+        this.options.consumerOptions,
+        subject
+      );
       const subscription = await js.subscribe(subject, consumerOptions);
 
       this.logger.log(`Subscribed to ${subject} events`);
@@ -90,7 +93,7 @@ export class NatsJetStreamServer
     messageHandlers.forEach(async ([subject, messageHandler]) => {
       const subscriptionOptions: SubscriptionOptions = {
         // use the same inbox as event messages.
-        queue: this.options.consumerOptions.deliverTo,
+        // queue: this.options.consumerOptions.deliverTo,
         callback: async (err, msg) => {
           if (err) {
             return this.logger.error(err.message, err.stack);
