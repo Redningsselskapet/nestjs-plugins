@@ -1,6 +1,6 @@
 # 🚀 Nats JetStream Transport Module for NestJS
 
-Build Event Driven Microservices Architecture with Nats JetSteam Server and NestJS.
+Build Event Driven Microservices Architecture with Nats JetStream Server and NestJS.
 
 - At-least-once delivery; exactly once within a window
 - Store messages and replay by time or sequence
