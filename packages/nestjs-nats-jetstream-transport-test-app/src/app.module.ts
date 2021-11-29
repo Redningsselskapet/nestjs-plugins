@@ -9,7 +9,8 @@ import { NatsJetStreamTransport } from '@nestjs-plugins/nestjs-nats-jetstream-tr
   imports: [
     NatsJetStreamTransport.register({
       connectionOptions: {
-        servers: '127.0.0.1'
+        servers: 'localhost:4222',
+        name: 'myservice-publisher'
       }
     }),
   ],
