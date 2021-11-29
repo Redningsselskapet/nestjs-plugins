@@ -1,4 +1,4 @@
-import { consumerOpts } from "nats";
+import { consumerOpts, createInbox } from "nats";
 import { ServerConsumerOptions } from "src/interfaces";
 
 export function serverConsumerOptionsBuilder(
@@ -42,7 +42,7 @@ export function serverConsumerOptionsBuilder(
   deliverPolicy === "last_per_subject" && opts.deliverLastPerSubject();
   deliverPolicy === "New" && opts.deliverNew();
   deliverToSubject && opts.deliverTo(deliverToSubject);
-  deliverTo && opts.deliverTo(deliverTo);
+  deliverTo && opts.deliverTo(createInbox(deliverTo));
 
   description && opts.description(description);
   // durable && opts.durable('')

@@ -1,7 +1,18 @@
-import { CustomTransportStrategy, Server } from "@nestjs/microservices";
-import { Codec, connect, NatsConnection, StringCodec } from "nats";
+import {
+  CustomTransportStrategy,
+  MessageHandler,
+  Server,
+} from "@nestjs/microservices";
+import {
+  Codec,
+  connect,
+  ConsumerOptsBuilder,
+  NatsConnection,
+  SubscriptionOptions,
+  JSONCodec,
+} from "nats";
 import { NatsJetStreamServerOptions } from "./interfaces";
-import { NatsJetStreamContext } from "./nats-jetstream.context";
+import { NatsContext, NatsJetStreamContext } from "./nats-jetstream.context";
 import { serverConsumerOptionsBuilder } from "./utils/server-consumer-options-builder";
 import { from } from "rxjs";
 
@@ -10,11 +21,11 @@ export class NatsJetStreamServer
   implements CustomTransportStrategy
 {
   private nc: NatsConnection;
-  private sc: Codec<string>;
+  private codec: Codec<JSON>;
 
   constructor(private options: NatsJetStreamServerOptions) {
     super();
-    this.sc = StringCodec();
+    this.codec = JSONCodec();
   }
 
   async listen(callback: () => null) {
@@ -23,6 +34,7 @@ export class NatsJetStreamServer
     }
 
     await this.bindEventHandlers();
+    this.bindMessageHandlers();
     callback();
   }
 
@@ -30,7 +42,7 @@ export class NatsJetStreamServer
     await this.nc.close();
   }
 
-  private createConsumerOptions(subject: string) {
+  private createConsumerOptions(subject: string): ConsumerOptsBuilder {
     const opts = serverConsumerOptionsBuilder(this.options.consumerOptions);
     if (this.options.consumerOptions.durable) {
       opts.durable(
@@ -41,23 +53,63 @@ export class NatsJetStreamServer
   }
 
   private async bindEventHandlers() {
-    const subjects = Array.from(this.messageHandlers.keys());
+    const eventHandlers = this.filterEventHandlers();
+    const js = this.nc.jetstream(this.options.jetStreamOptions);
 
-    if (!subjects) {
-      this.logger.log("No message handlers registered");
-    }
-
-    subjects.forEach(async (subject): Promise<void> => {
-      const js = this.nc.jetstream();
-      const opts = this.createConsumerOptions(subject);
-      const handler = this.getHandlerByPattern(subject);
-      const subscription = await js.subscribe(subject, opts);
-      this.logger.log(`Subscribed to ${subject}`);
+    eventHandlers.forEach(async ([subject, eventHandler]) => {
+      const consumerOptions = this.createConsumerOptions(subject);
+      const subscription = await js.subscribe(subject, consumerOptions);
+      this.logger.log(`Subscribed to ${subject} events`);
       for await (const msg of subscription) {
-        const data = JSON.parse(this.sc.decode(msg.data));
-        const context = new NatsJetStreamContext([msg]);
-        this.send(from(handler(data, context)), () => null);
+        try {
+          const data = this.codec.decode(msg.data);
+          const context = new NatsJetStreamContext([msg]);
+          this.send(from(eventHandler(data, context)), () => null);
+        } catch (err) {
+          this.logger.error(err.message, err.stack);
+          // specifies that you failed to process the server and instructs
+          // the server to not send it againn (to any consumer)
+          msg.term();
+        }
       }
     });
+  }
+
+  private filterEventHandlers(): [string, MessageHandler<any, any>][] {
+    const eventHandlers = [...this.messageHandlers.entries()].filter(
+      ([, handler]) => handler.isEventHandler
+    );
+    return eventHandlers;
+  }
+
+  private bindMessageHandlers() {
+    const messageHandlers = this.filterMessageHandlers();
+    messageHandlers.forEach(async ([subject, messageHandler]) => {
+      const subscriptionOptions: SubscriptionOptions = {
+        queue: this.options.consumerOptions.deliverTo,
+        callback: async (err, msg) => {
+          if (err) {
+            return this.logger.error(err.message, err.stack);
+          }
+          const payload = this.codec.decode(msg.data);
+          const context = new NatsContext([msg]);
+          const response$ = this.transformToObservable(
+            messageHandler(payload, context)
+          );
+          this.send(response$, (response) =>
+            msg.respond(this.codec.encode(response as JSON))
+          );
+        },
+      };
+      this.nc.subscribe(subject, subscriptionOptions);
+      this.logger.log(`Subscribed to ${subject} messages`);
+    });
+  }
+
+  private filterMessageHandlers() {
+    const eventHandlers = [...this.messageHandlers.entries()].filter(
+      ([, handler]) => !handler.isEventHandler
+    );
+    return eventHandlers;
   }
 }
