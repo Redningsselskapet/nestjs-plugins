@@ -1,7 +1,4 @@
-import {
-  CustomTransportStrategy,
-  Server,
-} from "@nestjs/microservices";
+import { CustomTransportStrategy, Server } from "@nestjs/microservices";
 import {
   Codec,
   connect,
@@ -54,7 +51,7 @@ export class NatsJetStreamServer
         this.options.consumerOptions,
         subject
       );
-      
+
       const subscription = await js.subscribe(subject, consumerOptions);
 
       this.logger.log(`Subscribed to ${subject} events`);
@@ -81,7 +78,6 @@ export class NatsJetStreamServer
 
     messageHandlers.forEach(async ([subject, messageHandler]) => {
       const subscriptionOptions: SubscriptionOptions = {
-        // use the same inbox as event messages.
         queue: this.options.consumerOptions.deliverTo,
         callback: async (err, msg) => {
           if (err) {
