@@ -82,7 +82,7 @@ export class NatsJetStreamServer
     messageHandlers.forEach(async ([subject, messageHandler]) => {
       const subscriptionOptions: SubscriptionOptions = {
         // use the same inbox as event messages.
-        // queue: this.options.consumerOptions.deliverTo,
+        queue: this.options.consumerOptions.deliverTo,
         callback: async (err, msg) => {
           if (err) {
             return this.logger.error(err.message, err.stack);
