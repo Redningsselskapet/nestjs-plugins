@@ -54,7 +54,7 @@ export class NatsJetStreamServer
         this.options.consumerOptions,
         subject
       );
-      console.log(consumerOptions)
+      
       const subscription = await js.subscribe(subject, consumerOptions);
 
       this.logger.log(`Subscribed to ${subject} events`);
