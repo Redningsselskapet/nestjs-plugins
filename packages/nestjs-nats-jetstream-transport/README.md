@@ -167,6 +167,7 @@ import {
 } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Injectable } from '@nestjs/common';
 import { PubAck } from 'nats';
+import { Observable } from 'rxjs';
 
 interface OrderCreatedEvent {
   id: number;
@@ -231,7 +232,7 @@ export class AppService {
 
 import { NatsJetStreamContext } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Controller, Get } from '@nestjs/common';
-import { Ctx, EventPattern, Payload } from '@nestjs/microservices';
+import { Ctx, EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { AppService } from './app.service';
 
 @Controller()
@@ -313,12 +314,12 @@ async function bootstrap() {
   const options: CustomStrategy = {
     strategy: new NatsJetStreamServer({
       connectionOptions: {
-        servers: 'localhost'
+        servers: 'localhost:4222',
         name: 'myservice-listener'
       },
       consumerOptions: {
         deliverGroup: 'myservice-group',
-        durable: true,
+        durable: 'myservice',
         deliverTo: 'myservice',
         manualAck: true,
       },
