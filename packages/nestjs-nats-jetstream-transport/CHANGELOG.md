@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.1](https://github.com/Redningsselskapet/nestjs-plugins/compare/@nestjs-plugins/nestjs-nats-jetstream-transport@1.1.0...@nestjs-plugins/nestjs-nats-jetstream-transport@1.1.1) (2021-11-30)
+
+
+### Bug Fixes
+
+* removed console.log ([d60a71c](https://github.com/Redningsselskapet/nestjs-plugins/commit/d60a71c5535b46c8a63983a2063ac24113351eff))
+
+
+
+
+
 # [1.1.0](https://github.com/Redningsselskapet/nestjs-plugins/compare/@nestjs-plugins/nestjs-nats-jetstream-transport@1.1.0-pre.0...@nestjs-plugins/nestjs-nats-jetstream-transport@1.1.0) (2021-11-29)
 
 **Note:** Version bump only for package @nestjs-plugins/nestjs-nats-jetstream-transport
