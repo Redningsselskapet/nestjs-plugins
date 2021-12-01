@@ -1,8 +1,7 @@
 import { NatsJetStreamClientProxy } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { HttpException, Injectable } from '@nestjs/common';
-import { RpcException } from '@nestjs/microservices';
 import { PubAck } from 'nats';
-import { lastValueFrom, Observable } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
 
 interface OrderCreatedEvent {
   id: number;
