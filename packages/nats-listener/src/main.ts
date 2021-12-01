@@ -10,7 +10,7 @@ async function bootstrap() {
     strategy: new NatsJetStreamServer({
       connectionOptions: {
         servers: 'localhost',
-        name: 'myservice-listener'
+        name: 'myservice-listener',
       },
       consumerOptions: {
         deliverGroup: 'myservice-group',
@@ -21,10 +21,8 @@ async function bootstrap() {
     }),
   };
 
-  // hybrid microservice and web application
   const app = await NestFactory.create(AppModule);
   const microService = app.connectMicroservice(options);
   microService.listen();
-  
 }
 bootstrap();
