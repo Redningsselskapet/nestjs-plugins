@@ -1,9 +1,8 @@
-import {
-  NatsJetStreamClientProxy,
-} from '@nestjs-plugins/nestjs-nats-jetstream-transport';
-import { Injectable } from '@nestjs/common';
+import { NatsJetStreamClientProxy } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+import { HttpException, Injectable } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 import { PubAck } from 'nats';
-import { Observable } from 'rxjs';
+import { lastValueFrom, Observable } from 'rxjs';
 
 interface OrderCreatedEvent {
   id: number;
@@ -56,8 +55,15 @@ export class AppService {
   }
 
   // request - response
-  accumulate(payload: number[]): Observable<number> {
+  async accumulate(payload: number[]): Promise<number> {
+
     const pattern = { cmd: 'sum' };
-    return this.client.send<number>(pattern, payload);
+    try {
+      return await lastValueFrom(this.client.send<number>(pattern, payload));
+    } catch (err) {
+      if (+err.code === 503) {
+        throw new HttpException(err.message, err.code)
+      }
+    }
   }
 }
