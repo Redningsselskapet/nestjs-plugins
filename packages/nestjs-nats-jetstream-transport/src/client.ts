@@ -1,6 +1,11 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { ClientProxy, ReadPacket, WritePacket } from "@nestjs/microservices";
-import { Codec, connect, JSONCodec, NatsConnection, StringCodec } from "nats";
+import {
+  ClientProxy,
+  ReadPacket,
+  RpcException,
+  WritePacket,
+} from "@nestjs/microservices";
+import { Codec, connect, JSONCodec, NatsConnection, NatsError, StringCodec } from "nats";
 import { NATS_JETSTREAM_OPTIONS } from "./constants";
 import { NatsJetStreamClientOptions } from "./interfaces/nats-jetstream-client-options.interface";
 
@@ -13,7 +18,7 @@ export class NatsJetStreamClientProxy extends ClientProxy {
     @Inject(NATS_JETSTREAM_OPTIONS) private options: NatsJetStreamClientOptions
   ) {
     super();
-    this.codec = JSONCodec()
+    this.codec = JSONCodec();
   }
 
   async connect(): Promise<NatsConnection> {
@@ -40,7 +45,13 @@ export class NatsJetStreamClientProxy extends ClientProxy {
       .request(subject, payload)
       .then((msg) => this.codec.decode(msg.data) as WritePacket)
       .then((packet) => callback(packet))
-      .catch((err) => callback({ err }));
+      .catch((err) => {
+        if (err.message ==='503') {
+          err.message = `No responders subscribed to ${subject}`
+          err.code = 503;
+        }
+        callback({ err });
+      });
     return () => null;
   }
 
