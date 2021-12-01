@@ -30,7 +30,6 @@ export class AppController {
   // request - response
   @Get('/sum')
   calc() {
-    console.log('sum controller')
     return this.appService.accumulate([1,2,3])
   }
 }
