@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.3-pre.2](https://github.com/Redningsselskapet/nestjs-plugins/compare/@nestjs-plugins/nestjs-nats-jetstream-transport@1.1.3-pre.1...@nestjs-plugins/nestjs-nats-jetstream-transport@1.1.3-pre.2) (2021-12-02)
+
+**Note:** Version bump only for package @nestjs-plugins/nestjs-nats-jetstream-transport
+
+
+
+
+
 ## [1.1.3-pre.1](https://github.com/Redningsselskapet/nestjs-plugins/compare/@nestjs-plugins/nestjs-nats-jetstream-transport@1.1.3-pre.0...@nestjs-plugins/nestjs-nats-jetstream-transport@1.1.3-pre.1) (2021-12-01)
 
 **Note:** Version bump only for package @nestjs-plugins/nestjs-nats-jetstream-transport
