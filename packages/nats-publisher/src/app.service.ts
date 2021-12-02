@@ -1,6 +1,6 @@
 import { NatsJetStreamClientProxy } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { HttpException, Injectable } from '@nestjs/common';
-import { PubAck } from 'nats';
+import { ErrorCode, NatsError, PubAck } from 'nats';
 import { lastValueFrom } from 'rxjs';
 
 interface OrderCreatedEvent {
@@ -55,13 +55,12 @@ export class AppService {
 
   // request - response
   async accumulate(payload: number[]): Promise<number> {
-
     const pattern = { cmd: 'sum' };
     try {
       return await lastValueFrom(this.client.send<number>(pattern, payload));
     } catch (err) {
-      if (+err.code === 503) {
-        throw new HttpException(err.message, err.code)
+      if (err.code === ErrorCode.NoResponders) {
+        throw new HttpException(err.message, err.code);
       }
     }
   }
