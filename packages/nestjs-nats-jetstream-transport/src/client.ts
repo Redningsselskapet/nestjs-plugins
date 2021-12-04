@@ -37,7 +37,8 @@ export class NatsJetStreamClientProxy extends ClientProxy {
 
   async close() {
     await this.nc.drain();
-    this.nc.close();
+    await this.nc.close();
+    this.nc = undefined;
   }
 
   serializeError(err: NatsError) {
@@ -49,8 +50,8 @@ export class NatsJetStreamClientProxy extends ClientProxy {
   }
 
   protected publish(
-    packet: ReadPacket<any>,
-    callback: (packet: WritePacket<any>) => void
+    packet: ReadPacket,
+    callback: (packet: WritePacket) => void
   ): () => void {
     const payload = this.codec.encode(packet.data);
     const subject = this.normalizePattern(packet.pattern);
@@ -68,10 +69,10 @@ export class NatsJetStreamClientProxy extends ClientProxy {
   protected async dispatchEvent(packet: ReadPacket): Promise<any> {
     const payload = this.codec.encode(packet.data);
     const subject = this.normalizePattern(packet.pattern);
-    const jetstreamOpts = this.options.jetStreamOption;
-    const jetstreamPublishOpts = this.options.jetStreamPublishOptions;
+    const jetStreamOpts = this.options.jetStreamOption;
+    const jetStreamPublishOpts = this.options.jetStreamPublishOptions;
 
-    const js = this.nc.jetstream(jetstreamOpts);
-    return js.publish(subject, payload, jetstreamPublishOpts);
+    const js = this.nc.jetstream(jetStreamOpts);
+    return js.publish(subject, payload, jetStreamPublishOpts);
   }
 }
