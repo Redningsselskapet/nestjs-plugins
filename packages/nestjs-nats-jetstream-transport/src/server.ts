@@ -36,7 +36,7 @@ export class NatsJetStreamServer
 
   async close() {
     await this.nc.drain();
-    this.nc.close();
+    await this.nc.close();
   }
 
   private async bindEventHandlers() {
@@ -46,29 +46,33 @@ export class NatsJetStreamServer
 
     const js = this.nc.jetstream(this.options.jetStreamOptions);
 
-    eventHandlers.forEach(async ([subject, eventHandler]) => {
+    for (const [subject, eventHandler] of eventHandlers) {
       const consumerOptions = serverConsumerOptionsBuilder(
         this.options.consumerOptions,
         subject
       );
 
       const subscription = await js.subscribe(subject, consumerOptions);
-
       this.logger.log(`Subscribed to ${subject} events`);
-
-      for await (const msg of subscription) {
-        try {
-          const data = this.codec.decode(msg.data);
-          const context = new NatsJetStreamContext([msg]);
-          this.send(from(eventHandler(data, context)), () => null);
-        } catch (err) {
-          this.logger.error(err.message, err.stack);
-          // specifies that you failed to process the server and instructs
-          // the server to not send it againn (to any consumer)
-          msg.term();
+      const done = (async () => {
+        for await (const msg of subscription) {
+          try {
+            const data = this.codec.decode(msg.data);
+            const context = new NatsJetStreamContext([msg]);
+            this.send(from(eventHandler(data, context)), () => null);
+          } catch (err) {
+            this.logger.error(err.message, err.stack);
+            // specifies that you failed to process the server and instructs
+            // the server to not send it again (to any consumer)
+            msg.term();
+          }
         }
-      }
-    });
+      })();
+      done.then(() => {
+        subscription.destroy();
+        this.logger.log(`Unsubscribed ${subject}`);
+      });
+    }
   }
 
   private bindMessageHandlers() {

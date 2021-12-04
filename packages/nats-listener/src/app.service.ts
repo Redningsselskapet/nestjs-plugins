@@ -1,8 +1,6 @@
 // app.service.ts
 
-import {
-  NatsJetStreamClientProxy,
-} from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+import { NatsJetStreamClientProxy } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Injectable } from '@nestjs/common';
 import { PubAck } from 'nats';
 import { Observable } from 'rxjs';
@@ -12,10 +10,12 @@ interface OrderCreatedEvent {
   product: string;
   quantity: number;
 }
+
 interface OrderUpdatedEvent {
   id: number;
   quantity: number;
 }
+
 interface OrderDeleteEvent {
   id: number;
 }
