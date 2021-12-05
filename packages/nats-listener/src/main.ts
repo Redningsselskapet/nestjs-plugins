@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { CustomStrategy } from '@nestjs/microservices';
 import { NatsJetStreamServer } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+import { StorageType } from 'nats';
 
 async function bootstrap() {
   const options: CustomStrategy = {
@@ -18,11 +19,18 @@ async function bootstrap() {
         deliverTo: 'test-service',
         manualAck: true,
       },
+      streamConfig: {
+        name: 'my-stream',
+        subjects: ['order.*'],
+        storage: StorageType.Memory,
+      },
     }),
   };
 
   const app = await NestFactory.create(AppModule);
   const microService = app.connectMicroservice(options);
-  microService.listen();
+  await microService.listen();
 }
+
+// noinspection JSIgnoredPromiseFromCall
 bootstrap();
