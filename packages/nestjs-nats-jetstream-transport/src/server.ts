@@ -5,6 +5,7 @@ import {
   NatsConnection,
   SubscriptionOptions,
   JSONCodec,
+  JetStreamManager,
 } from "nats";
 
 import { NatsContext, NatsJetStreamContext } from "./nats-jetstream.context";
@@ -12,12 +13,14 @@ import { serverConsumerOptionsBuilder } from "./utils/server-consumer-options-bu
 import { from } from "rxjs";
 import { NatsJetStreamServerOptions } from "./interfaces/nats-jetstream-server-options.interface";
 
+// noinspection JSUnusedGlobalSymbols
 export class NatsJetStreamServer
   extends Server
   implements CustomTransportStrategy
 {
   private nc: NatsConnection;
   private codec: Codec<JSON>;
+  private jsm: JetStreamManager;
 
   constructor(private options: NatsJetStreamServerOptions) {
     super();
@@ -28,6 +31,10 @@ export class NatsJetStreamServer
     if (!this.nc) {
       this.nc = await connect(this.options.connectionOptions);
     }
+    this.jsm = await this.nc.jetstreamManager(this.options.jetStreamOptions);
+    if (this.options.streamConfig) {
+      await this.setupStream();
+    }
 
     await this.bindEventHandlers();
     this.bindMessageHandlers();
@@ -37,6 +44,7 @@ export class NatsJetStreamServer
   async close() {
     await this.nc.drain();
     await this.nc.close();
+    this.nc = undefined;
   }
 
   private async bindEventHandlers() {
@@ -51,7 +59,6 @@ export class NatsJetStreamServer
         this.options.consumerOptions,
         subject
       );
-
       const subscription = await js.subscribe(subject, consumerOptions);
       this.logger.log(`Subscribed to ${subject} events`);
       const done = (async () => {
@@ -101,5 +108,26 @@ export class NatsJetStreamServer
       this.nc.subscribe(subject, subscriptionOptions);
       this.logger.log(`Subscribed to ${subject} messages`);
     });
+  }
+
+  private async setupStream() {
+    const { streamConfig } = this.options;
+    const streams = await this.jsm.streams.list().next();
+    const stream = streams.find(
+      (stream) => stream.config.name === streamConfig.name
+    );
+
+    if (stream) {
+      const streamInfo = await this.jsm.streams.update({
+        ...stream.config,
+        ...streamConfig,
+      });
+      this.logger.log(`Stream ${streamInfo.config.name} updated`);
+      console.log(streamInfo.config);
+    } else {
+      const streamInfo = await this.jsm.streams.add(streamConfig);
+      this.logger.log(`Stream ${streamInfo.config.name} created`);
+      console.log(streamInfo.config);
+    }
   }
 }
