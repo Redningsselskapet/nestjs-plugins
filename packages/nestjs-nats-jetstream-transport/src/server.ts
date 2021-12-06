@@ -123,7 +123,6 @@ export class NatsJetStreamServer
         ...streamConfig,
       });
       this.logger.log(`Stream ${streamInfo.config.name} updated`);
-      console.log(streamInfo.config);
     } else {
       const streamInfo = await this.jsm.streams.add(streamConfig);
       this.logger.log(`Stream ${streamInfo.config.name} created`);
