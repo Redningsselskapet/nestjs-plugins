@@ -3,6 +3,7 @@ import { NatsJetStreamClientProxy } from "./client";
 import { NATS_JETSTREAM_OPTIONS } from "./constants";
 import { NatsJetStreamClientOptions } from "./interfaces/nats-jetstream-client-options.interface";
 
+// noinspection JSUnusedGlobalSymbols
 export class NatsJetStreamTransport {
   static register(options: NatsJetStreamClientOptions): DynamicModule {
     const providers = [

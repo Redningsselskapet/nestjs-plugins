@@ -1,6 +1,11 @@
 import { NatsJetStreamContext } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Controller, Get } from '@nestjs/common';
-import { Ctx, EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
+import {
+  Ctx,
+  EventPattern,
+  MessagePattern,
+  Payload,
+} from '@nestjs/microservices';
 import { AppService } from './app.service';
 
 @Controller()
@@ -9,7 +14,7 @@ export class AppController {
 
   @Get()
   home(): string {
-    return 'Welcome to webshop'
+    return 'Welcome to webshop';
   }
 
   @Get('/create')
@@ -30,8 +35,8 @@ export class AppController {
   // request - response
   @Get('/sum')
   calc() {
-    console.log('sum controller')
-    return this.appService.accumulate([1,2,3])
+    console.log('sum controller');
+    return this.appService.accumulate([1, 2, 3]);
   }
 
   @EventPattern('order.updated')
@@ -54,7 +59,7 @@ export class AppController {
 
   @EventPattern('order.deleted')
   public async orderDeletedHandler(
-    @Payload() data:any,
+    @Payload() data: any,
     @Ctx() context: NatsJetStreamContext,
   ) {
     context.message.ack();
@@ -64,7 +69,7 @@ export class AppController {
   // request - response
   @MessagePattern({ cmd: 'sum' })
   async accumulate(data: number[]): Promise<number> {
-    console.log('message conroller', data)
+    console.log('message conroller', data);
     return (data || []).reduce((a, b) => a + b);
   }
 }

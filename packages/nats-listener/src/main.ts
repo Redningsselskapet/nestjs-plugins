@@ -4,14 +4,12 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { CustomStrategy } from '@nestjs/microservices';
 import { NatsJetStreamServer } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
-import { StorageType } from 'nats';
 
 async function bootstrap() {
   const options: CustomStrategy = {
     strategy: new NatsJetStreamServer({
       connectionOptions: {
-        servers: 'localhost',
-        name: 'myservice-listener',
+        name: 'my-client',
       },
       consumerOptions: {
         deliverGroup: 'myservice-group',
@@ -22,7 +20,6 @@ async function bootstrap() {
       streamConfig: {
         name: 'my-stream',
         subjects: ['order.*'],
-        storage: StorageType.Memory,
       },
     }),
   };

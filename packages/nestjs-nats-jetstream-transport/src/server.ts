@@ -87,7 +87,7 @@ export class NatsJetStreamServer
       ([, handler]) => !handler.isEventHandler
     );
 
-    messageHandlers.forEach(async ([subject, messageHandler]) => {
+    for (const [subject, messageHandler] of messageHandlers) {
       const subscriptionOptions: SubscriptionOptions = {
         queue: this.options.consumerOptions.deliverTo,
         callback: async (err, msg) => {
@@ -107,7 +107,7 @@ export class NatsJetStreamServer
 
       this.nc.subscribe(subject, subscriptionOptions);
       this.logger.log(`Subscribed to ${subject} messages`);
-    });
+    }
   }
 
   private async setupStream() {
