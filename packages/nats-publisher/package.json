@@ -1,6 +1,6 @@
 {
   "name": "nats-publisher",
-  "version": "0.0.6-pre.1",
+  "version": "0.0.6-pre.2",
   "description": "",
   "author": "",
   "private": true,
@@ -21,7 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@nestjs-plugins/nestjs-nats-jetstream-transport": "^1.1.6-pre.1",
+    "@nestjs-plugins/nestjs-nats-jetstream-transport": "^1.1.6-pre.2",
     "@nestjs/common": "^8.0.0",
     "@nestjs/core": "^8.0.0",
     "@nestjs/microservices": "^8.2.3",
