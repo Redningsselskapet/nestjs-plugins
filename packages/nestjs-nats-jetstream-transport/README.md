@@ -51,8 +51,6 @@ For the rest of the choices just press enter and use the defaults.
 > This will create a new stream or update existing. 
 > The code example bellow has this object defined so there is not really necessary to add this stream through nats cli. 
 
-[Read more about the stream configuration here]()
-
 You are now ready to publish and consume events on the stream. See the [code example](#Code-example) below for a test drive.
 
 ## 📖 Description - configuration objects
