@@ -9,16 +9,16 @@ async function bootstrap() {
   const options: CustomStrategy = {
     strategy: new NatsJetStreamServer({
       connectionOptions: {
-        name: 'my-client',
+        name: 'myservice-listener',
       },
       consumerOptions: {
         deliverGroup: 'myservice-group',
-        durable: 'myservice',
-        deliverTo: 'test-service',
+        durable: 'myservice-durable',
+        deliverTo: 'myservice-messages',
         manualAck: true,
       },
       streamConfig: {
-        name: 'my-stream',
+        name: 'mystream',
         subjects: ['order.*'],
       },
     }),
