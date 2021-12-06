@@ -47,6 +47,10 @@ Enter a stream name e.g. mystream. Then as subjects use `order.* `
 
 For the rest of the choices just press enter and use the defaults.
 
+> You can also automatically create a stream by defining a streamConfig object to the NatsJestStreamOptions object. 
+> This will create a new stream or update existing. 
+> The code example bellow has this object defined so there is not really necessary to add this stream through nats cli. 
+
 [Read more about the stream configuration here]()
 
 You are now ready to publish and consume events on the stream. See the [code example](#Code-example) below for a test drive.
