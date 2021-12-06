@@ -7,7 +7,7 @@ export class AppController {
 
   @Get()
   home(): string {
-    return 'Welcome to webshop'
+    return 'Welcome to webshop';
   }
 
   @Get('/create')
@@ -28,6 +28,6 @@ export class AppController {
   // request - response
   @Get('/sum')
   calc() {
-    return this.appService.accumulate([1,2,3])
+    return this.appService.accumulate([1, 2, 3]);
   }
 }

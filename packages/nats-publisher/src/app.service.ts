@@ -1,17 +1,18 @@
 import { NatsJetStreamClientProxy } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
-import { HttpException, Injectable } from '@nestjs/common';
-import { ErrorCode, NatsError, PubAck } from 'nats';
-import { lastValueFrom } from 'rxjs';
+import { Injectable } from '@nestjs/common';
+import { PubAck } from 'nats';
 
 interface OrderCreatedEvent {
   id: number;
   product: string;
   quantity: number;
 }
+
 interface OrderUpdatedEvent {
   id: number;
   quantity: number;
 }
+
 interface OrderDeleteEvent {
   id: number;
 }
@@ -47,21 +48,19 @@ export class AppService {
   deleteOrder(): string {
     this.client
       .emit<PubAck, OrderDeleteEvent>(ORDER_DELETED, { id: 1 })
-      .subscribe((pubAck) => {
-        console.log(pubAck);
+      .subscribe({
+        next: (pubAck) => console.log(pubAck),
+        error: (err) => console.log(err),
       });
     return 'order deleted';
   }
 
   // request - response
-  async accumulate(payload: number[]): Promise<number> {
+  accumulate(payload: number[]) {
     const pattern = { cmd: 'sum' };
-    try {
-      return await lastValueFrom(this.client.send<number>(pattern, payload));
-    } catch (err) {
-      if (err.code === ErrorCode.NoResponders) {
-        throw new HttpException(err.message, err.code);
-      }
-    }
+    this.client.send<number>(pattern, payload).subscribe({
+      next: (value) => console.log(value),
+      error: (error) => console.log(error),
+    });
   }
 }
