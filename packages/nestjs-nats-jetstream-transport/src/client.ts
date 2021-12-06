@@ -1,17 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
-import {
-  ClientProxy,
-  ReadPacket,
-  WritePacket,
-} from "@nestjs/microservices";
-import {
-  Codec,
-  connect,
-  ErrorCode,
-  JSONCodec,
-  NatsConnection,
-  NatsError,
-} from "nats";
+import { ClientProxy, ReadPacket, WritePacket } from "@nestjs/microservices";
+import { Codec, connect, JSONCodec, NatsConnection } from "nats";
 import { NATS_JETSTREAM_OPTIONS } from "./constants";
 import { NatsJetStreamClientOptions } from "./interfaces/nats-jetstream-client-options.interface";
 
@@ -41,14 +30,6 @@ export class NatsJetStreamClientProxy extends ClientProxy {
     this.nc = undefined;
   }
 
-  serializeError(err: NatsError) {
-    if (err.code === ErrorCode.NoResponders) {
-      err.message = "NO_RESPONDERS";
-    }
-
-    return err;
-  }
-
   protected publish(
     packet: ReadPacket,
     callback: (packet: WritePacket) => void
@@ -71,7 +52,6 @@ export class NatsJetStreamClientProxy extends ClientProxy {
     const subject = this.normalizePattern(packet.pattern);
     const jetStreamOpts = this.options.jetStreamOption;
     const jetStreamPublishOpts = this.options.jetStreamPublishOptions;
-
     const js = this.nc.jetstream(jetStreamOpts);
     return js.publish(subject, payload, jetStreamPublishOpts);
   }
