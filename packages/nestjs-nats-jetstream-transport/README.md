@@ -51,13 +51,16 @@ For the rest of the choices just press enter and use the defaults.
 
 You are now ready to publish and consume events on the stream. See the [code example](#Code-example) below for a test drive.
 
+
+
 ## 📖 Description - configuration objects
 
 ### NatsJetStreamServerOptions
 
-- **connectionOptions**: ConnectionOptions 
+- **connectionOptions**: NatsConnectionOptions 
 - **serverConsumerOptions**: ServerConsumerOptions 
 - **jetStreamOptions**: JetStreamOption
+- **streamConfig**: NatsStreamConfig - Stream configuration. If defined, create stream if not exist.
 
 ### NatsJetStreamClientOptions
 
@@ -92,7 +95,7 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **deliverGroup**: string - when set will only deliver messages to subscriptions matching that group.
 - **headersOnly**: boolean - configures the consumer to only deliver existing header and the `Nats-Msg-Size` header, no bodies.
 
-### ConnectionOptions
+### NatsConnectionOptions
 
 - **servers**: string | string[] (default: 'localhost:4222') - String or Array of hostport for servers.
 - **debug**: boolean (default: false) - If `true`, the client prints protocol interactions to the console. Useful for debugging.
@@ -133,6 +136,44 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **headers**: ?
 - **msgID**: string - provide your own unique message ID for every message published.
 - **timeout**: number
+
+
+
+### **NatsStreamConfig**
+
+- **name**: string - Stream name
+
+- **subjects**: string[] - Array of subjects
+
+- **storage?**: StorageType (default: StorageType.File) - The type of storage backend, `File` and `Memory`
+
+- **retention?**: RetentionPolicy.limits (default: RetentionPolicy.Limits) - How message retention is considered, `Limits`, `Interest` or `WorkQueue`
+
+- **discard?**: DiscardPolicy (default: DiscardPolicy.Old)
+
+- **max_msgs?**: number (default: -1) - How large the Stream may become in total messages before the configured discard policy kicks in.
+
+- **max_msgs_per_subject?**: number (default: -1)
+
+- **max_msg_size?**: number (default: -1) - The largest message that will be accepted by the Stream.
+
+- **max_age?**: number (default: 0) - Maximum age of any message in the stream, expressed in microseconds.
+
+- **duplicate_window?**: number (default: 120000000000) - The window within which to track duplicate messages.
+
+- **num_replicas?**: number (default:1) - How many replicas to keep for each message in a clustered JetStream, maximum 5
+
+- **max_consumers?**: number (default: -1) - not exposed
+
+- **sealed?**: boolean (default: false) - not exposed
+
+- **deny_delete?**: boolean (default: false) - not exposed
+
+- **deny_purge?**: boolean (default: false) - not exposed
+
+- **allow_rollup_hdrs?**: boolean (default: false) - not exposed
+
+
 
 ## Code example
 
@@ -319,10 +360,14 @@ async function bootstrap() {
       },
       consumerOptions: {
         deliverGroup: 'myservice-group',
-        durable: 'myservice',
-        deliverTo: 'myservice',
+        durable: 'myservice-durable',
+        deliverTo: 'myservice-messages',
         manualAck: true,
       },
+      streamConfig: {
+        name: 'mystream',
+        subjects: ['order.*']  
+      }
     }),
   };
 
