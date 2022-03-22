@@ -1,6 +1,6 @@
 {
   "name": "nats-publisher",
-  "version": "0.0.7",
+  "version": "0.1.0",
   "description": "",
   "author": "",
   "private": true,
@@ -27,7 +27,7 @@
     "@nestjs/microservices": "^8.2.3",
     "@nestjs/platform-express": "^8.0.0",
     "nats": "^2.6.1",
-    "nestjs-nats-jetstream-transport": "^1.1.7",
+    "nestjs-nats-jetstream-transport": "^1.2.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0"
