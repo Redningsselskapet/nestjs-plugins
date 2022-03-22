@@ -118,7 +118,7 @@ export class NatsJetStreamServer
     );
 
     if (stream) {
-      const streamInfo = await this.jsm.streams.update({
+      const streamInfo = await this.jsm.streams.update(stream.config.name, {
         ...stream.config,
         ...streamConfig,
       });
