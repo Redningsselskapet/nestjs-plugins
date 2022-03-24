@@ -2,6 +2,7 @@ import { DynamicModule } from "@nestjs/common";
 import { NatsJetStreamClientProxy } from "./client";
 import { NATS_JETSTREAM_OPTIONS } from "./constants";
 import { NatsJetStreamClientOptions } from "./interfaces/nats-jetstream-client-options.interface";
+import { Publisher } from "./publisher";
 
 // noinspection JSUnusedGlobalSymbols
 export class NatsJetStreamTransport {
@@ -31,8 +32,9 @@ export class NatsJetStreamTransport {
           inject: options.inject || [],
         },
         NatsJetStreamClientProxy,
+        Publisher
       ],
-      exports: [NatsJetStreamClientProxy],
+      exports: [NatsJetStreamClientProxy, Publisher],
     };
   }
 }

@@ -1,4 +1,4 @@
-import { NatsJetStreamClientProxy } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+import { NatsJetStreamClientProxy, Publisher } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Injectable } from '@nestjs/common';
 import { PubAck } from 'nats';
 
@@ -23,11 +23,11 @@ const ORDER_DELETED = 'order.deleted';
 
 @Injectable()
 export class AppService {
-  constructor(private client: NatsJetStreamClientProxy) {}
+  constructor(private client: Publisher) {}
 
   createOrder(): string {
     this.client
-      .emit<PubAck, OrderCreatedEvent>(ORDER_CREATED, {
+      .emit<OrderCreatedEvent>(ORDER_CREATED, {
         id: 1,
         product: 'Socks',
         quantity: 1,
@@ -40,14 +40,14 @@ export class AppService {
 
   updateOrder(): string {
     this.client
-      .emit<null, OrderUpdatedEvent>(ORDER_UPDATED, { id: 1, quantity: 10 })
+      .emit<OrderUpdatedEvent>(ORDER_UPDATED, { id: 1, quantity: 10 })
       .subscribe();
     return 'order updated';
   }
 
   deleteOrder(): string {
     this.client
-      .emit<PubAck, OrderDeleteEvent>(ORDER_DELETED, { id: 1 })
+      .emit<OrderDeleteEvent>(ORDER_DELETED, { id: 1 })
       .subscribe({
         next: (pubAck) => console.log(pubAck),
         error: (err) => console.log(err),
@@ -58,7 +58,7 @@ export class AppService {
   // request - response
   accumulate(payload: number[]) {
     const pattern = { cmd: 'sum' };
-    this.client.send<number>(pattern, payload).subscribe({
+    this.client.send<number[]>(pattern, payload).subscribe({
       next: (value) => console.log(value),
       error: (error) => console.log(error),
     });
