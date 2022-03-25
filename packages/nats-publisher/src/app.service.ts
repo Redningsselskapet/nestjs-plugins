@@ -1,4 +1,4 @@
-import { NatsJetStreamClientProxy, Publisher } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+import { NatsJetStreamClientProxy, NatsJetStreamClient } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Injectable } from '@nestjs/common';
 import { PubAck } from 'nats';
 
@@ -23,7 +23,7 @@ const ORDER_DELETED = 'order.deleted';
 
 @Injectable()
 export class AppService {
-  constructor(private client: Publisher) {}
+  constructor(private client: NatsJetStreamClient) {}
 
   createOrder(): string {
     this.client

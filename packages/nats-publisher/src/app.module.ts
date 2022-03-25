@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { NatsJetStreamTransport, Publisher } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+import { NatsJetStreamTransport, NatsJetStreamClient } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 
 @Module({
   imports: [
@@ -12,6 +12,6 @@ import { NatsJetStreamTransport, Publisher } from '@nestjs-plugins/nestjs-nats-j
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, Publisher],
+  providers: [AppService, NatsJetStreamClient],
 })
 export class AppModule {}
