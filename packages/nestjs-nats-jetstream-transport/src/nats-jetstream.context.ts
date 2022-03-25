@@ -20,6 +20,6 @@ export class NatsContext extends BaseRpcContext<NatsContextArgs> {
   }
 
   get message(): Msg {
-    return this.args[0]
+    return this.args[0];
   }
 }

@@ -32,7 +32,7 @@ export class NatsJetStreamTransport {
           inject: options.inject || [],
         },
         NatsJetStreamClientProxy,
-        NatsJetStreamClient
+        NatsJetStreamClient,
       ],
       exports: [NatsJetStreamClientProxy, NatsJetStreamClient],
     };

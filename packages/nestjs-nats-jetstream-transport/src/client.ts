@@ -1,7 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { ClientProxy, ReadPacket, WritePacket } from "@nestjs/microservices";
 import { Codec, connect, JSONCodec, NatsConnection, PubAck } from "nats";
-import { Observable } from "rxjs";
 import { NATS_JETSTREAM_OPTIONS } from "./constants";
 import { NatsJetStreamClientOptions } from "./interfaces/nats-jetstream-client-options.interface";
 
