@@ -4,7 +4,7 @@ import { Observable } from "rxjs";
 import { NatsJetStreamClientProxy } from "./client";
 
 @Injectable()
-export class Publisher {
+export class NatsJetStreamClient {
   constructor(private client: NatsJetStreamClientProxy) {}
   emit<TInput>(pattern: any, data: TInput): Observable<PubAck> {
     return this.client.emit<PubAck, TInput>(pattern, data);
