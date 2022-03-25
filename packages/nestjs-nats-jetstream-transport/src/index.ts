@@ -7,3 +7,4 @@ export * from "./interfaces/nats-jetstream-server-options.interface";
 export * from "./interfaces/server-consumer-options.interface";
 export * from "./utils/server-consumer-options-builder";
 export * from "./nats-jetstream.context";
+export * from "./nats-jetstream-client"
