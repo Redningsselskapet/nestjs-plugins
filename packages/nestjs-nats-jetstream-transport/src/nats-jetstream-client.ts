@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { PubAck } from "nats";
+import { NatsConnection, PubAck } from "nats";
 import { Observable } from "rxjs";
 import { NatsJetStreamClientProxy } from "./client";
 
@@ -12,10 +12,10 @@ export class NatsJetStreamClient {
   send<TInput>(pattern: any, data: TInput): Observable<PubAck> {
     return this.client.send<PubAck, TInput>(pattern, data);
   }
-  connect() {
-    this.connect();
+  async connect(): Promise<NatsConnection> {
+    return this.client.connect();
   }
-  close() {
-    this.close();
+  async close(): Promise<void> {
+    return this.client.close();
   }
 }
