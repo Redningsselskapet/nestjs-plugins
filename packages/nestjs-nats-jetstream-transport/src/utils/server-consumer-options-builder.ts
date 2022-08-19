@@ -46,7 +46,7 @@ export function serverConsumerOptionsBuilder(
   deliverTo && opts.deliverTo(createInbox(deliverTo));
 
   description && opts.description(description);
-  durable && opts.durable(`${durable}-${subject.replace(".", "_").replace("*", "_ALL")}`)
+  durable && opts.durable(`${durable}-${subject.replaceAll(".", "_").replaceAll("*", "_ALL")}`)
   filterSubject && opts.filterSubject(filterSubject);
   flowControl && opts.flowControl();
   headersOnly && opts.headersOnly();
