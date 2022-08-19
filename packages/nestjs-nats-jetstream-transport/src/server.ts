@@ -30,6 +30,7 @@ export class NatsJetStreamServer
   async listen(callback: () => null) {
     if (!this.nc) {
       this.nc = await connect(this.options.connectionOptions);
+      this.options.connectionOptions.connectedHook(this.nc);
     }
     this.jsm = await this.nc.jetstreamManager(this.options.jetStreamOptions);
     if (this.options.streamConfig) {
