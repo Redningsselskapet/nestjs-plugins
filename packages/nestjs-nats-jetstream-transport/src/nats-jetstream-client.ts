@@ -1,7 +1,7 @@
-import { Injectable } from "@nestjs/common";
-import { NatsConnection, PubAck } from "nats";
-import { Observable } from "rxjs";
-import { NatsJetStreamClientProxy } from "./client";
+import { Injectable } from '@nestjs/common';
+import { NatsConnection, PubAck } from 'nats';
+import { Observable } from 'rxjs';
+import { NatsJetStreamClientProxy } from './client';
 
 @Injectable()
 export class NatsJetStreamClient {

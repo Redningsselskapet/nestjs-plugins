@@ -1,8 +1,8 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { ClientProxy, ReadPacket, WritePacket } from "@nestjs/microservices";
-import { Codec, connect, JSONCodec, NatsConnection, PubAck } from "nats";
-import { NATS_JETSTREAM_OPTIONS } from "./constants";
-import { NatsJetStreamClientOptions } from "./interfaces/nats-jetstream-client-options.interface";
+import { Inject, Injectable } from '@nestjs/common';
+import { ClientProxy, ReadPacket, WritePacket } from '@nestjs/microservices';
+import { Codec, connect, JSONCodec, NatsConnection } from 'nats';
+import { NATS_JETSTREAM_OPTIONS } from './constants';
+import { NatsJetStreamClientOptions } from './interfaces/nats-jetstream-client-options.interface';
 
 @Injectable()
 export class NatsJetStreamClientProxy extends ClientProxy {
@@ -10,7 +10,7 @@ export class NatsJetStreamClientProxy extends ClientProxy {
   private codec: Codec<JSON>;
 
   constructor(
-    @Inject(NATS_JETSTREAM_OPTIONS) private options: NatsJetStreamClientOptions
+    @Inject(NATS_JETSTREAM_OPTIONS) private options: NatsJetStreamClientOptions,
   ) {
     super();
     this.codec = JSONCodec();
@@ -33,7 +33,7 @@ export class NatsJetStreamClientProxy extends ClientProxy {
 
   protected publish(
     packet: ReadPacket,
-    callback: (packet: WritePacket) => void
+    callback: (packet: WritePacket) => void,
   ): () => void {
     const payload = this.codec.encode(packet.data);
     const subject = this.normalizePattern(packet.pattern);

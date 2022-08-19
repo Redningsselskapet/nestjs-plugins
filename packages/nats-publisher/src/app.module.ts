@@ -11,7 +11,8 @@ import {
     NatsJetStreamTransport.register({
       connectionOptions: {
         name: 'myservice-publisher',
-        connectedHook: (nc) => console.log('From hook: publisher connected to ', nc.getServer()),
+        connectedHook: (nc) =>
+          console.log('From hook: publisher connected to ', nc.getServer()),
       },
     }),
   ],

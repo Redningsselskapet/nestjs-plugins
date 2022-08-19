@@ -1,9 +1,9 @@
-import { consumerOpts, createInbox } from "nats";
-import { ServerConsumerOptions } from "src/interfaces/server-consumer-options.interface";
-
+import { consumerOpts, createInbox } from 'nats';
+import { ServerConsumerOptions } from 'src/interfaces/server-consumer-options.interface';
 
 export function serverConsumerOptionsBuilder(
-  serverConsumerOptions: ServerConsumerOptions, subject: string
+  serverConsumerOptions: ServerConsumerOptions,
+  subject: string,
 ) {
   const {
     deliverGroup,
@@ -35,18 +35,21 @@ export function serverConsumerOptionsBuilder(
 
   deliverGroup && opts.deliverGroup(deliverGroup);
   manualAck && opts.manualAck();
-  ackPolicy === "All" && opts.ackAll();
-  ackPolicy === "Explicit" && opts.ackExplicit();
-  ackPolicy === "None" && opts.ackNone();
-  deliverPolicy === "All" && opts.deliverAll();
-  deliverPolicy === "Last" && opts.deliverLast();
-  deliverPolicy === "last_per_subject" && opts.deliverLastPerSubject();
-  deliverPolicy === "New" && opts.deliverNew();
+  ackPolicy === 'All' && opts.ackAll();
+  ackPolicy === 'Explicit' && opts.ackExplicit();
+  ackPolicy === 'None' && opts.ackNone();
+  deliverPolicy === 'All' && opts.deliverAll();
+  deliverPolicy === 'Last' && opts.deliverLast();
+  deliverPolicy === 'last_per_subject' && opts.deliverLastPerSubject();
+  deliverPolicy === 'New' && opts.deliverNew();
   deliverToSubject && opts.deliverTo(deliverToSubject);
   deliverTo && opts.deliverTo(createInbox(deliverTo));
 
   description && opts.description(description);
-  durable && opts.durable(`${durable}-${subject.replaceAll(".", "_").replaceAll("*", "_ALL")}`)
+  durable &&
+    opts.durable(
+      `${durable}-${subject.replaceAll('.', '_').replaceAll('*', '_ALL')}`,
+    );
   filterSubject && opts.filterSubject(filterSubject);
   flowControl && opts.flowControl();
   headersOnly && opts.headersOnly();
@@ -57,8 +60,8 @@ export function serverConsumerOptionsBuilder(
   maxMessages && opts.maxMessages(maxMessages);
   maxWaiting && opts.maxWaiting(maxWaiting);
   orderedConsumer && opts.orderedConsumer();
-  replayPolicy === "Instant" && opts.replayInstantly();
-  replayPolicy === "Original" && opts.replayOriginal();
+  replayPolicy === 'Instant' && opts.replayInstantly();
+  replayPolicy === 'Original' && opts.replayOriginal();
   sample && opts.sample(sample);
   startAtTimeDelta && opts.startAtTimeDelta(startAtTimeDelta);
   startSequence && opts.startSequence(startSequence);

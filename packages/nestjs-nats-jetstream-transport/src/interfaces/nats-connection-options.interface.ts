@@ -1,4 +1,4 @@
-import { ConnectionOptions, NatsConnection } from "nats";
+import { ConnectionOptions, NatsConnection } from 'nats';
 
 export interface NatsConnectionOptions extends ConnectionOptions {
   name: string;

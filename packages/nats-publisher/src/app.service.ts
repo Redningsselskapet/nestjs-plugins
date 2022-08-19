@@ -1,4 +1,7 @@
-import { NatsJetStreamClientProxy, NatsJetStreamClient } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+import {
+  NatsJetStreamClientProxy,
+  NatsJetStreamClient,
+} from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Injectable } from '@nestjs/common';
 import { Events, PubAck } from 'nats';
 import { async } from 'rxjs';
@@ -25,11 +28,11 @@ const ORDER_DELETED = 'order.deleted';
 @Injectable()
 export class AppService {
   constructor(private client: NatsJetStreamClient) {
-    client.connect().then(async nc => {
+    client.connect().then(async (nc) => {
       for await (const s of nc.status()) {
         console.log(s);
       }
-    })     
+    });
   }
 
   createOrder(): string {
@@ -53,12 +56,10 @@ export class AppService {
   }
 
   deleteOrder(): string {
-    this.client
-      .emit<OrderDeleteEvent>(ORDER_DELETED, { id: 1 })
-      .subscribe({
-        next: (pubAck) => console.log(pubAck),
-        error: (err) => console.log(err),
-      });
+    this.client.emit<OrderDeleteEvent>(ORDER_DELETED, { id: 1 }).subscribe({
+      next: (pubAck) => console.log(pubAck),
+      error: (err) => console.log(err),
+    });
     return 'order deleted';
   }
 

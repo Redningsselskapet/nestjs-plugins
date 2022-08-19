@@ -25,7 +25,9 @@
   "scripts": {
     "test": "exit 0",
     "build": "rimraf dist && tsc",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
   },
   "author": "Bernt Anker [bernt.anker@gmail.com]",
   "license": "ISC",
