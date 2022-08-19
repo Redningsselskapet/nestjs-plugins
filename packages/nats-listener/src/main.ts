@@ -5,7 +5,7 @@ import { AppModule } from './app.module';
 import { CustomStrategy } from '@nestjs/microservices';
 import { NatsJetStreamServer } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Logger } from '@nestjs/common';
-import { Events } from 'nats';
+import { DebugEvents, Events } from 'nats';
 
 async function bootstrap() {
   const logger = new Logger();
@@ -14,9 +14,11 @@ async function bootstrap() {
       connectionOptions: {
         name: 'myservice-listener',
         connectedHook: async (nc) => {
-          logger.log('connected');
+          logger.log('Connected to ' + nc.getServer());
           for await (const s of nc.status()) {
-            console.log(s)
+            if (s.type == DebugEvents.PingTimer) {
+              console.log('We got ping timer attempt: ' + s.data);
+            }
           }
         },
       },
