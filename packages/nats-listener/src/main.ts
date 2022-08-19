@@ -16,9 +16,7 @@ async function bootstrap() {
         connectedHook: async (nc) => {
           logger.log('connected');
           for await (const s of nc.status()) {
-            if (s.type == Events.Reconnect) {
-              console.log(s.data);
-            }
+            console.log(s)
           }
         },
       },
