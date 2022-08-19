@@ -1,4 +1,4 @@
-import { CustomTransportStrategy, Server } from "@nestjs/microservices";
+import { CustomTransportStrategy, Server } from '@nestjs/microservices';
 import {
   Codec,
   connect,
@@ -6,12 +6,12 @@ import {
   SubscriptionOptions,
   JSONCodec,
   JetStreamManager,
-} from "nats";
+} from 'nats';
 
-import { NatsContext, NatsJetStreamContext } from "./nats-jetstream.context";
-import { serverConsumerOptionsBuilder } from "./utils/server-consumer-options-builder";
-import { from } from "rxjs";
-import { NatsJetStreamServerOptions } from "./interfaces/nats-jetstream-server-options.interface";
+import { NatsContext, NatsJetStreamContext } from './nats-jetstream.context';
+import { serverConsumerOptionsBuilder } from './utils/server-consumer-options-builder';
+import { from } from 'rxjs';
+import { NatsJetStreamServerOptions } from './interfaces/nats-jetstream-server-options.interface';
 
 // noinspection JSUnusedGlobalSymbols
 export class NatsJetStreamServer
@@ -50,7 +50,7 @@ export class NatsJetStreamServer
 
   private async bindEventHandlers() {
     const eventHandlers = [...this.messageHandlers.entries()].filter(
-      ([, handler]) => handler.isEventHandler
+      ([, handler]) => handler.isEventHandler,
     );
 
     const js = this.nc.jetstream(this.options.jetStreamOptions);
@@ -58,7 +58,7 @@ export class NatsJetStreamServer
     for (const [subject, eventHandler] of eventHandlers) {
       const consumerOptions = serverConsumerOptionsBuilder(
         this.options.consumerOptions,
-        subject
+        subject,
       );
       const subscription = await js.subscribe(subject, consumerOptions);
       this.logger.log(`Subscribed to ${subject} events`);
@@ -85,7 +85,7 @@ export class NatsJetStreamServer
 
   private bindMessageHandlers() {
     const messageHandlers = [...this.messageHandlers.entries()].filter(
-      ([, handler]) => !handler.isEventHandler
+      ([, handler]) => !handler.isEventHandler,
     );
 
     for (const [subject, messageHandler] of messageHandlers) {
@@ -98,10 +98,10 @@ export class NatsJetStreamServer
           const payload = this.codec.decode(msg.data);
           const context = new NatsContext([msg]);
           const response$ = this.transformToObservable(
-            messageHandler(payload, context)
+            messageHandler(payload, context),
           );
           this.send(response$, (response) =>
-            msg.respond(this.codec.encode(response as JSON))
+            msg.respond(this.codec.encode(response as JSON)),
           );
         },
       };
@@ -115,7 +115,7 @@ export class NatsJetStreamServer
     const { streamConfig } = this.options;
     const streams = await this.jsm.streams.list().next();
     const stream = streams.find(
-      (stream) => stream.config.name === streamConfig.name
+      (stream) => stream.config.name === streamConfig.name,
     );
 
     if (stream) {
