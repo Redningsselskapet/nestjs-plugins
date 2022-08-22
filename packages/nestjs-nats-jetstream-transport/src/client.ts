@@ -19,7 +19,9 @@ export class NatsJetStreamClientProxy extends ClientProxy {
   async connect(): Promise<NatsConnection> {
     if (!this.nc) {
       this.nc = await connect(this.options.connectionOptions);
-      this.options.connectionOptions.connectedHook(this.nc);
+      if (this.options.connectionOptions.connectedHook) {
+        this.options.connectionOptions.connectedHook(this.nc);
+      }
     }
 
     return this.nc;
