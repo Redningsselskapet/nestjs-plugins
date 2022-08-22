@@ -1,10 +1,8 @@
 # 🚀 Nats JetStream Transport Module for NestJS
 
 > Breakable changes in v1.3..x
-> 
+>
 > Replace NatsJetStreamClientProxy with NatsJetStreamClient
-
-
 
 Build Event Driven Microservices Architecture with Nats JetStream Server and NestJS.
 
@@ -46,16 +44,16 @@ For other platforms see [alternative installation methods](https://github.com/na
 To try the [code example](#Code-example) below, add a stream to the nats server:
 
 ```bash
-nats stream add 
+nats stream add
 ```
 
 Enter a stream name e.g. mystream. Then as subjects use `order.* `
 
 For the rest of the choices just press enter and use the defaults.
 
-> You can also automatically create a stream by defining a streamConfig object to the NatsJestStreamOptions object. 
-> This will create a new stream or update existing. 
-> The code example bellow has this object defined so there is not really necessary to add this stream through nats cli. 
+> You can also automatically create a stream by defining a streamConfig object to the NatsJestStreamOptions object.
+> This will create a new stream or update existing.
+> The code example bellow has this object defined so there is not really necessary to add this stream through nats cli.
 
 You are now ready to publish and consume events on the stream. See the [code example](#Code-example) below for a test drive.
 
@@ -63,8 +61,8 @@ You are now ready to publish and consume events on the stream. See the [code exa
 
 ### NatsJetStreamServerOptions
 
-- **connectionOptions**: NatsConnectionOptions 
-- **serverConsumerOptions**: ServerConsumerOptions 
+- **connectionOptions**: NatsConnectionOptions
+- **serverConsumerOptions**: ServerConsumerOptions
 - **jetStreamOptions**: JetStreamOption
 - **streamConfig**: NatsStreamConfig - Stream configuration. If defined, create stream if not exist.
 
@@ -106,6 +104,7 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **servers**: string | string[] (default: 'localhost:4222') - String or Array of hostport for servers.
 - **debug**: boolean (default: false) - If `true`, the client prints protocol interactions to the console. Useful for debugging.
 - **name**: string - Connections can be assigned a name which will appear in some of the server monitoring data. This name is not required, but is **highly recommended** as a friendly connection name will help in monitoring, error reporting, debugging, and testing.
+- **connectedHook**: function(nc: NatsConnection): void - A hook function that is run after connection is established.
 - **ignoreClusterUpdates**: boolean - If `true` the client will ignore any cluster updates provided by the server.
 - **inboxPrefix**: string - Sets de prefix for automatically created inboxes - `createInbox(prefix)`
 - **maxPingOut**: number (default: 2) - Max number of pings the client will allow unanswered before raising a stale connection error.
@@ -113,25 +112,25 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **noEcho**: boolean (default: false) - The NoEcho option can be useful in BUS patterns where all applications subscribe and publish to the same subject.
 - **maxReconnectAttempts**: number (default: 10) - Maximum reconnect attempts per server.
 - **pass**: string - Sets the password for a connection.
-- **noRandomize**: boolean (default: false) - In order to prevent [*thundering herd*](/developing-with-nats/reconnect/random), most NATS client libraries randomize the servers they attempt to connect to. To disable the randomization process for connect and reconnect, set this to true.
+- **noRandomize**: boolean (default: false) - In order to prevent [_thundering herd_](/developing-with-nats/reconnect/random), most NATS client libraries randomize the servers they attempt to connect to. To disable the randomization process for connect and reconnect, set this to true.
 - **pedantic**: boolean (default: false) - mode that performs extra checks on the protocol.
 - **pingInterval**: number (default: 5) - Number of milliseconds between client-sent pings.
 - **port**: number (default: 4222) - Port number nats server listens on.
 - **reconnect**: boolean (default: true) - If false, client will not attempt reconnecting.
 - **reconnectJitter**: number - control how long before the NATS client attempts to reconnect to a server it has previously connected.
 - **reconnectJitterTLS**: number - control how long before the NATS client attempts to reconnect to a server it has previously connected.
-- **reconnectTimeWait**: number - prevents wasting client resources and alleviates a [*thundering herd*](/developing-with-nats/reconnect/random) situation when additional servers are not available.
+- **reconnectTimeWait**: number - prevents wasting client resources and alleviates a [_thundering herd_](/developing-with-nats/reconnect/random) situation when additional servers are not available.
 - reconnectDelayHandler: Generated function - A function that returns the number of milliseconds to wait before the next connection to a server it connected to `()=>number`.
 - **timeout**: number (default: 20000) - Number of milliseconds the client will wait for a connection to be established. If it fails it will emit a `connection_timeout` event with a NatsError that provides the hostport of the server where the connection was attempted.
 - **token**: string - Sets a authorization token for a connection.
-- **authenticator:** Authenticator (default:  none) - Specifies the authenticator function that sets the client credentials.
+- **authenticator:** Authenticator (default: none) - Specifies the authenticator function that sets the client credentials.
 - **user**: string - Sets the username for a connection.
 - **verbose**: boolean (default: false) - Turns on `+OK` protocol acknowledgements.
 - **waitOnFirstConnect**: boolean (default: false) - If `true` the client will fall back to a reconnect mode if it fails its first connection attempt.
 
 ### JetStreamOptions
 
-- **apiPrefix**: string - *Not documented!*
+- **apiPrefix**: string - _Not documented!_
 - **domain**: string - Sets the domain for JetStream subjects, creating a standard prefix from that domain.
 - **timeout**: number - Sets the request timeout for JetStream API calls.
 
@@ -172,8 +171,8 @@ import { NatsJetStreamTransport } from '@nestjs-plugins/nestjs-nats-jetstream-tr
     NatsJetStreamTransport.register({
       connectionOptions: {
         servers: 'localhost:4222',
-        name: 'myservice-publisher'
-      }
+        name: 'myservice-publisher',
+      },
     }),
   ],
   controllers: [AppController],
@@ -185,9 +184,7 @@ export class AppModule {}
 ```typescript
 // app.service.ts
 
-import {
-  NatsJetStreamClient,
-} from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+import { NatsJetStreamClient } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Injectable } from '@nestjs/common';
 import { PubAck } from 'nats';
 import { Observable } from 'rxjs';
@@ -255,7 +252,12 @@ export class AppService {
 
 import { NatsJetStreamContext } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Controller, Get } from '@nestjs/common';
-import { Ctx, EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
+import {
+  Ctx,
+  EventPattern,
+  MessagePattern,
+  Payload,
+} from '@nestjs/microservices';
 import { AppService } from './app.service';
 
 @Controller()
@@ -264,7 +266,7 @@ export class AppController {
 
   @Get()
   home(): string {
-    return 'Welcome to webshop'
+    return 'Welcome to webshop';
   }
 
   @Get('/create')
@@ -285,8 +287,8 @@ export class AppController {
   // request - response
   @Get('/sum')
   calc() {
-    console.log('sum controller')
-    return this.appService.accumulate([1,2,3])
+    console.log('sum controller');
+    return this.appService.accumulate([1, 2, 3]);
   }
 
   @EventPattern('order.updated')
@@ -309,7 +311,7 @@ export class AppController {
 
   @EventPattern('order.deleted')
   public async orderDeletedHandler(
-    @Payload() data:any,
+    @Payload() data: any,
     @Ctx() context: NatsJetStreamContext,
   ) {
     context.message.ack();
@@ -319,7 +321,7 @@ export class AppController {
   // request - response
   @MessagePattern({ cmd: 'sum' })
   async accumulate(data: number[]): Promise<number> {
-    console.log('message conroller', data)
+    console.log('message conroller', data);
     return (data || []).reduce((a, b) => a + b);
   }
 }
@@ -338,7 +340,7 @@ async function bootstrap() {
     strategy: new NatsJetStreamServer({
       connectionOptions: {
         servers: 'localhost:4222',
-        name: 'myservice-listener'
+        name: 'myservice-listener',
       },
       consumerOptions: {
         deliverGroup: 'myservice-group',
@@ -348,8 +350,8 @@ async function bootstrap() {
       },
       streamConfig: {
         name: 'mystream',
-        subjects: ['order.*']  
-      }
+        subjects: ['order.*'],
+      },
     }),
   };
 
