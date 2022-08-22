@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.3.5](https://github.com/Redningsselskapet/nestjs-plugins/compare/@nestjs-plugins/nestjs-nats-jetstream-transport@1.3.4...@nestjs-plugins/nestjs-nats-jetstream-transport@1.3.5) (2022-08-22)
+
+
+### Bug Fixes
+
+* TypeError when this.options.connectionOptions.connectedHook not set ([d1dbd5d](https://github.com/Redningsselskapet/nestjs-plugins/commit/d1dbd5d9f060b91ce822ba093503f0a103a8d3fd))
+
+
+
+
+
 ## [1.3.4](https://github.com/Redningsselskapet/nestjs-plugins/compare/@nestjs-plugins/nestjs-nats-jetstream-transport@1.3.3...@nestjs-plugins/nestjs-nats-jetstream-transport@1.3.4) (2022-08-19)
 
 
