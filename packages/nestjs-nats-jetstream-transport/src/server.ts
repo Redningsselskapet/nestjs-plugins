@@ -13,7 +13,6 @@ import { serverConsumerOptionsBuilder } from './utils/server-consumer-options-bu
 import { from } from 'rxjs';
 import { NatsJetStreamServerOptions } from './interfaces/nats-jetstream-server-options.interface';
 
-// noinspection JSUnusedGlobalSymbols
 export class NatsJetStreamServer
   extends Server
   implements CustomTransportStrategy
