@@ -3,11 +3,18 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { CustomStrategy } from '@nestjs/microservices';
-import { NatsJetStreamServer } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+import {
+  NatsJetStreamServer,
+  NatsStreamConfig,
+} from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Logger } from '@nestjs/common';
 import { DebugEvents, Events } from 'nats';
 
 async function bootstrap() {
+  const streamConfig: NatsStreamConfig = {
+    name: 'mystream',
+    subjects: ['order.*'],
+  };
   const logger = new Logger();
   const options: CustomStrategy = {
     strategy: new NatsJetStreamServer({
@@ -28,10 +35,7 @@ async function bootstrap() {
         deliverTo: 'myservice-messages',
         manualAck: true,
       },
-      streamConfig: {
-        name: 'mystream',
-        subjects: ['order.*'],
-      },
+      streamConfig,
     }),
   };
 
