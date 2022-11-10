@@ -240,9 +240,9 @@ export class AppService {
   }
 
   // request - response
-  accumulate(payload: number[]): Observable<number> {
+  accumulate(payload: number[]): Observable<PubAck> {
     const pattern = { cmd: 'sum' };
-    return this.client.send<number>(pattern, payload);
+    return this.client.send<number[]>(pattern, payload);
   }
 }
 ```
