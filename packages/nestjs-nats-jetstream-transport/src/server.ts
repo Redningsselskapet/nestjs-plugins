@@ -2,21 +2,23 @@ import { CustomTransportStrategy, Server } from '@nestjs/microservices';
 import {
   Codec,
   connect,
+  JetStreamManager,
+  JSONCodec,
   NatsConnection,
   SubscriptionOptions,
-  JSONCodec,
-  JetStreamManager,
 } from 'nats';
 
+import { from } from 'rxjs';
+import { NATS_JETSTREAM_TRANSPORT } from './constants';
+import { NatsJetStreamServerOptions } from './interfaces/nats-jetstream-server-options.interface';
 import { NatsContext, NatsJetStreamContext } from './nats-jetstream.context';
 import { serverConsumerOptionsBuilder } from './utils/server-consumer-options-builder';
-import { from } from 'rxjs';
-import { NatsJetStreamServerOptions } from './interfaces/nats-jetstream-server-options.interface';
 
 export class NatsJetStreamServer
   extends Server
   implements CustomTransportStrategy
 {
+  readonly transportId: symbol = NATS_JETSTREAM_TRANSPORT;
   private nc: NatsConnection;
   private codec: Codec<JSON>;
   private jsm: JetStreamManager;

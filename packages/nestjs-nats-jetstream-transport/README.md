@@ -152,7 +152,7 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **max_msgs?**: number (default: -1) - How large the Stream may become in total messages before the configured discard policy kicks in.
 - **max_msgs_per_subject?**: number (default: -1)
 - **max_msg_size?**: number (default: -1) - The largest message that will be accepted by the Stream.
-- **max_age?**: number (default: 0) - Maximum age of any message in the stream, expressed in microseconds.
+- **max_age?**: number (default: 0) - Maximum age of any message in the stream, expressed in nanoseconds.
 - **duplicate_window?**: number (default: 120000000000) - The window within which to track duplicate messages.
 - **num_replicas?**: number (default:1) - How many replicas to keep for each message in a clustered JetStream, maximum 5
 

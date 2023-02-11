@@ -1,5 +1,6 @@
 export * from './server';
 export * from './client';
+export * from './constants';
 export * from './nats-jetstream-transport.module';
 export * from './interfaces/nats-connection-options.interface';
 export * from './interfaces/nats-jetstream-client-options.interface';
