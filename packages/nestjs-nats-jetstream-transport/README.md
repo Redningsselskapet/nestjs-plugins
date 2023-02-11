@@ -1,9 +1,5 @@
 # 🚀 Nats JetStream Transport Module for NestJS
 
-> Breakable changes in v1.3..x
->
-> Replace NatsJetStreamClientProxy with NatsJetStreamClient
-
 Build Event Driven Microservices Architecture with Nats JetStream Server and NestJS.
 
 - At-least-once delivery; exactly once within a window
