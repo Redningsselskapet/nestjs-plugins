@@ -120,9 +120,12 @@ export class NatsJetStreamServer
     );
 
     if (stream) {
+      const streamSubjects = new Set([...stream.config.subjects, ...streamConfig.subjects]);
+
       const streamInfo = await this.jsm.streams.update(stream.config.name, {
         ...stream.config,
         ...streamConfig,
+        subjects: [...streamSubjects.keys()],
       });
       this.logger.log(`Stream ${streamInfo.config.name} updated`);
     } else {
