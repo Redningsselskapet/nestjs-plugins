@@ -1,6 +1,6 @@
 {
   "name": "@nestjs-plugins/nestjs-nats-jetstream-transport",
-  "version": "1.3.9",
+  "version": "1.3.10",
   "description": "Nats JetStream Transport for NestJS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,7 +32,7 @@
   "author": "Bernt Anker [bernt.anker@gmail.com]",
   "license": "ISC",
   "dependencies": {
-    "@nestjs-plugins/nestjs-nats-jetstream-transport": "^1.3.9",
+    "@nestjs-plugins/nestjs-nats-jetstream-transport": "^1.3.10",
     "nats": "^2.6.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.4.0"
