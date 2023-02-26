@@ -9,6 +9,7 @@ export function serverConsumerOptionsBuilder(
     deliverGroup,
     deliverToSubject,
     deliverTo,
+    ackWait,
     manualAck,
     ackPolicy,
     deliverPolicy,
@@ -34,6 +35,7 @@ export function serverConsumerOptionsBuilder(
   const opts = consumerOpts();
 
   deliverGroup && opts.deliverGroup(deliverGroup);
+  ackWait && opts.ackWait(ackWait);
   manualAck && opts.manualAck();
   ackPolicy === 'All' && opts.ackAll();
   ackPolicy === 'Explicit' && opts.ackExplicit();
