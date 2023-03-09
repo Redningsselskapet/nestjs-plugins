@@ -29,7 +29,6 @@ export class NatsJetStreamClientProxy extends ClientProxy {
 
   async close() {
     await this.nc.drain();
-    await this.nc.close();
     this.nc = undefined;
   }
 

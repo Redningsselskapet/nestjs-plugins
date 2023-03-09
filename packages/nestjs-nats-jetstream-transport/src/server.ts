@@ -47,7 +47,6 @@ export class NatsJetStreamServer
 
   async close() {
     await this.nc.drain();
-    await this.nc.close();
     this.nc = undefined;
   }
 
