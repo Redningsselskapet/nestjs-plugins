@@ -80,7 +80,12 @@ export class NatsJetStreamServer
         }
       })();
       done.then(() => {
+        // if the connection is closed or draining, we don't need to unsubscribe as the subscription will be unsubscribed automatically
+        if (this.nc.isDraining() || this.nc.isClosed()) {
+          return;
+        }
         subscription.destroy();
+      
         this.logger.log(`Unsubscribed ${subject}`);
       });
     }
@@ -122,7 +127,10 @@ export class NatsJetStreamServer
     );
 
     if (stream) {
-      const streamSubjects = new Set([...stream.config.subjects, ...streamConfig.subjects]);
+      const streamSubjects = new Set([
+        ...stream.config.subjects,
+        ...streamConfig.subjects,
+      ]);
 
       const streamInfo = await this.jsm.streams.update(stream.config.name, {
         ...stream.config,
