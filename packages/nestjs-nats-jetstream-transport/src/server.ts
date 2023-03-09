@@ -85,7 +85,7 @@ export class NatsJetStreamServer
           return;
         }
         subscription.destroy();
-      
+
         this.logger.log(`Unsubscribed ${subject}`);
       });
     }
@@ -141,7 +141,6 @@ export class NatsJetStreamServer
     } else {
       const streamInfo = await this.jsm.streams.add(streamConfig);
       this.logger.log(`Stream ${streamInfo.config.name} created`);
-      console.log(streamInfo.config);
     }
   }
 }
