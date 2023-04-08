@@ -172,7 +172,7 @@ import { NatsJetStreamTransport } from '@nestjs-plugins/nestjs-nats-jetstream-tr
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, NatsJetStreamClient],
 })
 export class AppModule {}
 ```
