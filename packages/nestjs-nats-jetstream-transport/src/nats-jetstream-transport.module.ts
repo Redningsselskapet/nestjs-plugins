@@ -13,6 +13,7 @@ export class NatsJetStreamTransport {
         useValue: options,
       },
       NatsJetStreamClientProxy,
+      NatsJetStreamClient,
     ];
 
     return {
