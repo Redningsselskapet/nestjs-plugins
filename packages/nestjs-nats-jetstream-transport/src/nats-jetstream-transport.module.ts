@@ -1,7 +1,10 @@
 import { DynamicModule } from '@nestjs/common';
 import { NatsJetStreamClientProxy } from './client';
 import { NATS_JETSTREAM_OPTIONS } from './constants';
-import { NatsJetStreamClientAsyncOptions, NatsJetStreamClientOptions } from './interfaces/nats-jetstream-client-options.interface';
+import {
+  NatsJetStreamClientAsyncOptions,
+  NatsJetStreamClientOptions,
+} from './interfaces/nats-jetstream-client-options.interface';
 
 // noinspection JSUnusedGlobalSymbols
 export class NatsJetStreamTransport {
@@ -20,7 +23,9 @@ export class NatsJetStreamTransport {
       module: NatsJetStreamTransport,
     };
   }
-  static registerAsync(options: NatsJetStreamClientAsyncOptions): DynamicModule {
+  static registerAsync(
+    options: NatsJetStreamClientAsyncOptions,
+  ): DynamicModule {
     return {
       module: NatsJetStreamTransport,
       imports: options.imports,
