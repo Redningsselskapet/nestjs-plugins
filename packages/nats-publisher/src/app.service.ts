@@ -1,7 +1,4 @@
-import {
-  NatsJetStreamClientProxy,
-  NatsJetStreamClient,
-} from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+import { NatsJetStreamClientProxy } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Injectable } from '@nestjs/common';
 import { Events, PubAck } from 'nats';
 import { async } from 'rxjs';
@@ -27,7 +24,7 @@ const ORDER_DELETED = 'order.deleted';
 
 @Injectable()
 export class AppService {
-  constructor(private client: NatsJetStreamClient) {
+  constructor(private client: NatsJetStreamClientProxy) {
     client.connect().then(async (nc) => {
       for await (const s of nc.status()) {
         console.log(s);

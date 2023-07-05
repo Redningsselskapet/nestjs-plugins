@@ -172,7 +172,7 @@ import { NatsJetStreamTransport } from '@nestjs-plugins/nestjs-nats-jetstream-tr
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, NatsJetStreamClient],
+  providers: [AppService],
 })
 export class AppModule {}
 ```
@@ -180,7 +180,7 @@ export class AppModule {}
 ```typescript
 // app.service.ts
 
-import { NatsJetStreamClient } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+import { NatsJetStreamClientProxy } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Injectable } from '@nestjs/common';
 import { PubAck } from 'nats';
 import { Observable } from 'rxjs';
@@ -204,7 +204,7 @@ const ORDER_DELETED = 'order.deleted';
 
 @Injectable()
 export class AppService {
-  constructor(private client: NatsJetStreamClient) {}
+  constructor(private client: NatsJetStreamClientProxy) {}
 
   createOrder(): string {
     this.client

@@ -3,7 +3,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import {
   NatsJetStreamTransport,
-  NatsJetStreamClient,
 } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 
 @Module({
@@ -17,6 +16,6 @@ import {
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, NatsJetStreamClient],
+  providers: [AppService],
 })
 export class AppModule {}
