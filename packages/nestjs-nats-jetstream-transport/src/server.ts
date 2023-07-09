@@ -28,7 +28,7 @@ export class NatsJetStreamServer
     this.codec = JSONCodec();
   }
 
-  async listen(callback: () => null) {
+  async listen(callback: () => void) {
     if (!this.nc) {
       this.nc = await connect(this.options.connectionOptions);
       if (this.options.connectionOptions.connectedHook) {
