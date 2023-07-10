@@ -1,8 +1,18 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy, ReadPacket, WritePacket } from '@nestjs/microservices';
-import { Codec, connect, JSONCodec, NatsConnection } from 'nats';
+import {
+  Codec,
+  connect,
+  headers,
+  JetStreamPublishOptions,
+  JSONCodec,
+  NatsConnection,
+  RequestOptions,
+} from 'nats';
 import { NATS_JETSTREAM_OPTIONS } from './constants';
 import { NatsJetStreamClientOptions } from './interfaces/nats-jetstream-client-options.interface';
+import { NatsJetStreamRecord } from './utils/nats-jetstream-record.builder';
+import { NatsRequestRecord } from './utils/nats-request-record-builder';
 
 @Injectable()
 export class NatsJetStreamClientProxy extends ClientProxy {
@@ -36,25 +46,46 @@ export class NatsJetStreamClientProxy extends ClientProxy {
     packet: ReadPacket,
     callback: (packet: WritePacket) => void,
   ): () => void {
-    const payload = this.codec.encode(packet.data);
     const subject = this.normalizePattern(packet.pattern);
 
-    this.nc
-      .request(subject, payload)
-      .then((msg) => this.codec.decode(msg.data) as WritePacket)
-      .then((packet) => callback(packet))
-      .catch((err) => {
-        callback({ err });
-      });
-    return () => null;
+    if (packet.data instanceof NatsRequestRecord) {
+      const options: RequestOptions = packet.data.options;
+      const payload = this.codec.encode(packet.data.payload);
+      this.nc
+        .request(subject, payload, options)
+        .then((msg) => this.codec.decode(msg.data) as WritePacket)
+        .then((packet) => callback(packet))
+        .catch((err) => {
+          callback({ err });
+        });
+      return () => null;
+    } else {
+      const payload = this.codec.encode(packet.data);
+      this.nc
+        .request(subject, payload)
+        .then((msg) => this.codec.decode(msg.data) as WritePacket)
+        .then((packet) => callback(packet))
+        .catch((err) => {
+          callback({ err });
+        });
+      return () => null;
+    }
   }
 
-  protected async dispatchEvent(packet: ReadPacket): Promise<any> {
-    const payload = this.codec.encode(packet.data);
+  protected async dispatchEvent(
+    packet: ReadPacket<NatsJetStreamRecord>,
+  ): Promise<any> {
     const subject = this.normalizePattern(packet.pattern);
     const jetStreamOpts = this.options.jetStreamOption;
-    const jetStreamPublishOpts = this.options.jetStreamPublishOptions;
     const js = this.nc.jetstream(jetStreamOpts);
-    return js.publish(subject, payload, jetStreamPublishOpts);
+
+    if (packet.data instanceof NatsJetStreamRecord) {
+      const payload = this.codec.encode(packet.data.payload);
+      const options = packet.data.options;
+      return js.publish(subject, payload, options);
+    } else {
+      const payload = this.codec.encode(packet.data);
+      return js.publish(subject, payload);
+    }
   }
 }
