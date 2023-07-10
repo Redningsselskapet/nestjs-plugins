@@ -53,6 +53,8 @@ export class AppController {
     @Payload() data: { id: number; name: string },
     @Ctx() context: NatsJetStreamContext,
   ) {
+    console.log(context.message.headers);
+    console.log(context.message.info);
     context.message.ack();
     console.log('received: ' + context.message.subject, data);
   }
@@ -68,8 +70,21 @@ export class AppController {
 
   // request - response
   @MessagePattern({ cmd: 'sum' })
-  async accumulate(data: number[]): Promise<number> {
+  async accumulate(
+    @Payload() data: number[],
+    @Ctx() context: NatsJetStreamContext,
+  ): Promise<number> {
+    console.log(context.message.headers);
     console.log('message conroller', data);
     return (data || []).reduce((a, b) => a + b);
+  }
+
+  @MessagePattern('price-calculation')
+  async koko(
+    @Payload() data: number[],
+    @Ctx() context: NatsJetStreamContext,
+  ): Promise<number> {
+    console.log('price-calculation', data);
+    return;
   }
 }
