@@ -1,6 +1,13 @@
-import { NatsJetStreamClientProxy } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+import {
+  NatsJetStreamRecordBuilder,
+  NatsRequestOptionsBuilder,
+} from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+import {
+  NatsJetStreamClientProxy,
+  NatsJetStreamRecord,
+} from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Injectable } from '@nestjs/common';
-import { Events, PubAck } from 'nats';
+import { Events, JetStreamPublishOptions, PubAck, headers } from 'nats';
 import { async } from 'rxjs';
 
 interface OrderCreatedEvent {
@@ -33,15 +40,22 @@ export class AppService {
   }
 
   createOrder(): string {
-    this.client
-      .emit<OrderCreatedEvent>(ORDER_CREATED, {
-        id: 1,
-        product: 'Socks',
-        quantity: 1,
-      })
-      .subscribe((pubAck) => {
-        console.log(pubAck);
-      });
+    const recordBuilder = new NatsJetStreamRecordBuilder<OrderCreatedEvent>({
+      id: 1,
+      product: 'NestJS',
+      quantity: 10,
+    });
+
+    //recordBuilder.setMsgId('123');
+    recordBuilder.setExpectations({
+      streamName: 'mystream',
+    });
+    recordBuilder.appendHeader('x-custom-header', 'custom-header-value');
+    const record = recordBuilder.build();
+
+    this.client.emit(ORDER_CREATED, record).subscribe((pubAck) => {
+      console.log(pubAck);
+    });
     return 'order created.';
   }
 
@@ -63,7 +77,16 @@ export class AppService {
   // request - response
   accumulate(payload: number[]) {
     const pattern = { cmd: 'sum' };
-    this.client.send<number[]>(pattern, payload).subscribe({
+
+    const builder = new NatsRequestOptionsBuilder();
+    builder.setPayload(payload);
+    builder.appendHeader('x-custom-header', 'custom-header-value');
+    builder.setReplyToSubject('price-calculation');
+    builder.setTimeout(1000);
+    builder.setNoMux(true);
+    const record = builder.build();
+
+    this.client.send<number[]>(pattern, record).subscribe({
       next: (value) => console.log(value),
       error: (error) => console.log(error),
     });
