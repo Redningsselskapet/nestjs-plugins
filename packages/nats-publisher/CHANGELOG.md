@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.11-pre.0](https://github.com/Redningsselskapet/nestjs-plugins/compare/nats-publisher@0.2.10...nats-publisher@0.2.11-pre.0) (2023-07-13)
+
+**Note:** Version bump only for package nats-publisher
+
+
+
+
+
 ## [0.2.1](https://github.com/Redningsselskapet/nestjs-plugins/compare/nats-publisher@0.2.0...nats-publisher@0.2.1) (2022-08-22)
 
 **Note:** Version bump only for package nats-publisher
