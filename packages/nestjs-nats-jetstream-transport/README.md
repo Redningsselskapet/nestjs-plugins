@@ -66,7 +66,6 @@ You are now ready to publish and consume events on the stream. See the [code exa
 
 - **connectionOptions**: ConnectionOptions
 - **jetStreamOptions**: JetStreamOptions
-- **jetStreamPublishOptions**: JetStreamPublishOptions
 
 ### ServerConsumerOptions
 
