@@ -24,6 +24,7 @@ export interface ServerConsumerOptions {
     | 'Original';
   maxDeliver?: number;
   filterSubject?: string;
+  filterSubjects?: string[];
   sample?: number;
   idleHeartbeat?: number;
   flowControl?: boolean;

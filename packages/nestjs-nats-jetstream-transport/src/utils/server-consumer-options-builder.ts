@@ -16,6 +16,7 @@ export function serverConsumerOptionsBuilder(
     description,
     durable,
     filterSubject,
+    filterSubjects,
     flowControl,
     headersOnly,
     idleHeartbeat,
@@ -53,6 +54,7 @@ export function serverConsumerOptionsBuilder(
       `${durable}-${subject.replaceAll('.', '_').replaceAll('*', '_ALL')}`,
     );
   filterSubject && opts.filterSubject(filterSubject);
+  filterSubjects && opts.filterSubjects(filterSubjects);
   flowControl && opts.flowControl();
   headersOnly && opts.headersOnly();
   idleHeartbeat && opts.idleHeartbeat(idleHeartbeat);
