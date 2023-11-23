@@ -68,6 +68,36 @@ export class AppController {
     console.log('received: ' + context.message.subject, data);
   }
 
+  /** Added more listeners for the other subject */
+  @EventPattern('other.updated')
+  public async otherUpdatedHandler(
+    @Payload() data: string,
+    @Ctx() context: NatsJetStreamContext,
+  ) {
+    context.message.ack();
+    console.log('received: ' + context.message.subject, data);
+  }
+
+  @EventPattern('other.created')
+  public async otherCreatedHandler(
+    @Payload() data: { id: number; name: string },
+    @Ctx() context: NatsJetStreamContext,
+  ) {
+    console.log(context.message.headers);
+    console.log(context.message.info);
+    context.message.ack();
+    console.log('received: ' + context.message.subject, data);
+  }
+
+  @EventPattern('other.deleted')
+  public async otherDeletedHandler(
+    @Payload() data: any,
+    @Ctx() context: NatsJetStreamContext,
+  ) {
+    context.message.ack();
+    console.log('received: ' + context.message.subject, data);
+  }
+
   // request - response
   @MessagePattern({ cmd: 'sum' })
   async accumulate(
