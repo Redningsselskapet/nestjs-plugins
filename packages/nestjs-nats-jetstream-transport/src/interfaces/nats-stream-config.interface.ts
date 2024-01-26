@@ -11,6 +11,7 @@ type $StreamConfig = Pick<
   | 'max_age'
   | 'duplicate_window'
   | 'num_replicas'
+  | 'max_bytes'
 >;
 
 export interface NatsStreamConfig extends Partial<$StreamConfig> {
