@@ -1,6 +1,6 @@
 {
   "name": "@nestjs-plugins/nestjs-nats-jetstream-transport",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Nats JetStream Transport for NestJS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
