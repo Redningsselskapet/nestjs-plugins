@@ -50,7 +50,7 @@ export function serverConsumerOptionsBuilder(
   description && opts.description(description);
   durable &&
     opts.durable(
-      `${durable}-${subject.replaceAll('.', '_').replaceAll('*', '_ALL')}`,
+      `${durable}-${subject.replaceAll('.', '_').replaceAll('*', '_ALL').replaceAll('>', '_ALL')}`,
     );
   filterSubject && opts.filterSubject(filterSubject);
   flowControl && opts.flowControl();
