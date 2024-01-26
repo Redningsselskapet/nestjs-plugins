@@ -8,5 +8,5 @@ export interface NatsJetStreamServerOptions {
     Pick<NatsConnectionOptions, 'name'>;
   consumerOptions: Partial<ServerConsumerOptions>;
   jetStreamOptions?: JetStreamOptions;
-  streamConfig?: NatsStreamConfig;
+  streamConfig?: NatsStreamConfig | NatsStreamConfig[];
 }

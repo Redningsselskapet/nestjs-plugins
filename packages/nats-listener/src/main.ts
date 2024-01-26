@@ -11,10 +11,16 @@ import { Logger } from '@nestjs/common';
 import { DebugEvents, Events } from 'nats';
 
 async function bootstrap() {
-  const streamConfig: NatsStreamConfig = {
-    name: 'mystream',
-    subjects: ['order.*'],
-  };
+  const streamConfig: NatsStreamConfig[] = [
+    {
+      name: 'mystream',
+      subjects: ['order.*'],
+    },
+    {
+      name: 'my-other-stream',
+      subjects: ['other.*'],
+    },
+  ];
   const logger = new Logger();
   const options: CustomStrategy = {
     strategy: new NatsJetStreamServer({

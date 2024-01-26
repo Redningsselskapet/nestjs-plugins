@@ -347,6 +347,13 @@ async function bootstrap() {
         name: 'mystream',
         subjects: ['order.*'],
       },
+      //   streamConfig: [{
+      //     name: 'mystream',
+      //     subjects: ['order.*'],
+      //   },{
+      //     name: 'myOtherStream',
+      //     subjects: ['other.*'],
+      //   }],
     }),
   };
 
