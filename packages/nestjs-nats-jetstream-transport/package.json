@@ -32,7 +32,7 @@
   "author": "Bernt Anker [bernt.anker@gmail.com]",
   "license": "ISC",
   "dependencies": {
-    "nats": "^2.6.1",
+    "nats": "^2.19.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.4.0"
   },
