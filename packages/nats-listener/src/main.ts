@@ -8,7 +8,7 @@ import {
   NatsStreamConfig,
 } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Logger } from '@nestjs/common';
-import { DebugEvents, Events } from 'nats';
+import { DebugEvents } from 'nats';
 
 async function bootstrap() {
   const streamConfig: NatsStreamConfig[] = [
