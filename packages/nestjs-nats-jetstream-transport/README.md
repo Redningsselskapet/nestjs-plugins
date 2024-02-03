@@ -158,17 +158,17 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **max_msgs_per_subject?**: number (default: -1) - Limits how many messages in the stream to retain per subject.
 - **description?**: string - Limits how many messages in the stream to retain per subject.
 - **sealed?**: Sealed streams do not allow messages to be deleted via limits or API, sealed streams can not be unsealed via configuration update. Can only be set on already created streams via the Update API.
-- **deny_delete**: boolean (default: false) - Restricts the ability to delete messages from a stream via the API.
-- **deny_purge**: boolean (default: false) - Restricts the ability to purge messages from a stream via the API.
-- **allow_rollup**: Allows the use of the Nats-Rollup header to replace all contents of a stream, or subject in a stream, with a single new message.
-- **republish**: If set, messages stored to the stream will be immediately republished to the configured subject.
-- **allow_direct**: boolean (default: false) - If true, and the stream has more than one replica, each replica will respond to direct get requests for individual messages, not only the leader.
-- **mirror_direct**: boolean (default: false) - If true, and the stream is a mirror, the mirror will participate in a serving direct get requests for individual messages from origin stream.
-- **discard_new_per_subject**: boolean (default: false) - If true, applies discard new semantics on a per subject basis. Requires DiscardPolicy to be DiscardNew and the MaxMsgsPerSubject to be set.
-- **metadata**: A set of application-defined key-value pairs for associating metadata on the stream.
-- **compression**: If file-based and a compression algorithm is specified, the stream data will be compressed on disk. Valid options are nothing (empty string) or s2 for Snappy compression.
-- **first_seq**: number - If specified, a new stream will be created with it's initial sequence set to this value.
-- **subject_transform** - Applies a subject transform (to matching messages) before storing the message.
+- **deny_delete?**: boolean (default: false) - Restricts the ability to delete messages from a stream via the API.
+- **deny_purge?**: boolean (default: false) - Restricts the ability to purge messages from a stream via the API.
+- **allow_rollup?**: Allows the use of the Nats-Rollup header to replace all contents of a stream, or subject in a stream, with a single new message.
+- **republish?**: If set, messages stored to the stream will be immediately republished to the configured subject.
+- **allow_direct?**: boolean (default: false) - If true, and the stream has more than one replica, each replica will respond to direct get requests for individual messages, not only the leader.
+- **mirror_direct?**: boolean (default: false) - If true, and the stream is a mirror, the mirror will participate in a serving direct get requests for individual messages from origin stream.
+- **discard_new_per_subject?**: boolean (default: false) - If true, applies discard new semantics on a per subject basis. Requires DiscardPolicy to be DiscardNew and the MaxMsgsPerSubject to be set.
+- **metadata?**: A set of application-defined key-value pairs for associating metadata on the stream.
+- **compression?**: If file-based and a compression algorithm is specified, the stream data will be compressed on disk. Valid options are nothing (empty string) or s2 for Snappy compression.
+- **first_seq?**: number - If specified, a new stream will be created with it's initial sequence set to this value.
+- **subject_transform?** - Applies a subject transform (to matching messages) before storing the message.
 - **num_replicas?**: number (default:1) - How many replicas to keep for each message in a clustered JetStream, maximum 5.
 
 ## Code example
