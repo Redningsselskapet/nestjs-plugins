@@ -140,16 +140,36 @@ You are now ready to publish and consume events on the stream. See the [code exa
 ### **NatsStreamConfig**
 
 - **name**: string - Stream name
-- **subjects**: string[] - Array of subjects
 - **storage?**: StorageType (default: StorageType.File) - The type of storage backend, `File` and `Memory`
-- **retention?**: RetentionPolicy.limits (default: RetentionPolicy.Limits) - How message retention is considered, `Limits`, `Interest` or `WorkQueue`
-- **discard?**: DiscardPolicy (default: DiscardPolicy.Old)
-- **max_msgs?**: number (default: -1) - How large the Stream may become in total messages before the configured discard policy kicks in.
-- **max_msgs_per_subject?**: number (default: -1)
-- **max_msg_size?**: number (default: -1) - The largest message that will be accepted by the Stream.
+- **subjects**: string[] - Array of subjects
+- **replicas?**: number - How many replicas to keep for each message in a clustered JetStream, maximum 5.
 - **max_age?**: number (default: 0) - Maximum age of any message in the stream, expressed in nanoseconds.
+- **max_bytes?**: number - How many bytes the Stream may contain. Adheres to Discard Policy, removing oldest or refusing new messages if the Stream exceeds this size.
+- **max_msgs?**: number (default: -1) - How large the Stream may become in total messages before the configured discard policy kicks in.
+- **max_msg_size?**: number (default: -1) - The largest message that will be accepted by the Stream.
+- **max_consumers?**: number (default: -1) - How many Consumers can be defined for a given Stream, -1 for unlimited.
+- **no_ack?**: boolean (default: false) - Disables acknowledging messages that are received by the Stream.
+- **retention?**: RetentionPolicy.limits (default: RetentionPolicy.Limits) - How message retention is considered, `Limits`, `Interest` or `WorkQueue`.
+- **discard?**: DiscardPolicy (default: DiscardPolicy.Old) - he behavior of discarding messages when any streams' limits have been reached, `old` (delete the oldest messages in order to maintain the limit) or `new` (reject new messages from being appended to the stream if it would exceed one of the limits).
 - **duplicate_window?**: number (default: 120000000000) - The window within which to track duplicate messages.
-- **num_replicas?**: number (default:1) - How many replicas to keep for each message in a clustered JetStream, maximum 5
+- **placement?**: Placement - Used to declare where the stream should be placed via tags and/or an explicit cluster name.
+- **mirror?**: If set, indicates this stream is a mirror of another stream.
+- **sources?**: StreamSource - If defined, declares one or more streams this stream will source messages from.
+- **max_msgs_per_subject?**: number (default: -1) - Limits how many messages in the stream to retain per subject.
+- **description?**: string - Limits how many messages in the stream to retain per subject.
+- **sealed?**: Sealed streams do not allow messages to be deleted via limits or API, sealed streams can not be unsealed via configuration update. Can only be set on already created streams via the Update API.
+- **deny_delete**: boolean (default: false) - Restricts the ability to delete messages from a stream via the API.
+- **deny_purge**: boolean (default: false) - Restricts the ability to purge messages from a stream via the API.
+- **allow_rollup**: Allows the use of the Nats-Rollup header to replace all contents of a stream, or subject in a stream, with a single new message.
+- **republish**: If set, messages stored to the stream will be immediately republished to the configured subject.
+- **allow_direct**: boolean (default: false) - If true, and the stream has more than one replica, each replica will respond to direct get requests for individual messages, not only the leader.
+- **mirror_direct**: boolean (default: false) - If true, and the stream is a mirror, the mirror will participate in a serving direct get requests for individual messages from origin stream.
+- **discard_new_per_subject**: boolean (default: false) - If true, applies discard new semantics on a per subject basis. Requires DiscardPolicy to be DiscardNew and the MaxMsgsPerSubject to be set.
+- **metadata**: A set of application-defined key-value pairs for associating metadata on the stream.
+- **compression**: If file-based and a compression algorithm is specified, the stream data will be compressed on disk. Valid options are nothing (empty string) or s2 for Snappy compression.
+- **first_seq**: number - If specified, a new stream will be created with it's initial sequence set to this value.
+- **subject_transform** - Applies a subject transform (to matching messages) before storing the message.
+- **num_replicas?**: number (default:1) - How many replicas to keep for each message in a clustered JetStream, maximum 5.
 
 ## Code example
 
