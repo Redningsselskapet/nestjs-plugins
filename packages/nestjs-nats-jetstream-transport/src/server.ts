@@ -20,12 +20,18 @@ export class NatsJetStreamServer
 {
   readonly transportId: symbol = NATS_JETSTREAM_TRANSPORT;
   private nc: NatsConnection;
-  private codec: Codec<JSON>;
+  private codec: Codec<unknown>;
   private jsm: JetStreamManager;
 
   constructor(private options: NatsJetStreamServerOptions) {
     super();
-    this.codec = JSONCodec();
+
+    // Use provided codec if exists, otherwise use JSONCodec as default
+    if (options.connectionOptions.codec) {
+      this.codec = options.connectionOptions.codec;
+    } else {
+      this.codec = JSONCodec();
+    }
   }
 
   async listen(callback: () => void) {

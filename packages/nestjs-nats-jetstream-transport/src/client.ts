@@ -17,13 +17,19 @@ import { NatsRequestRecord } from './utils/nats-request-record-builder';
 @Injectable()
 export class NatsJetStreamClientProxy extends ClientProxy {
   private nc: NatsConnection;
-  private codec: Codec<JSON>;
+  private codec: Codec<unknown>;
 
   constructor(
     @Inject(NATS_JETSTREAM_OPTIONS) private options: NatsJetStreamClientOptions,
   ) {
     super();
-    this.codec = JSONCodec();
+
+    // Use provided codec if exists, otherwise use JSONCodec as default
+    if (options.connectionOptions.codec) {
+      this.codec = options.connectionOptions.codec;
+    } else {
+      this.codec = JSONCodec();
+    }
   }
 
   async connect(): Promise<NatsConnection> {
