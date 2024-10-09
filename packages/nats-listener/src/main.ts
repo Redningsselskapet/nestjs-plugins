@@ -8,13 +8,25 @@ import {
   NatsStreamConfig,
 } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Logger } from '@nestjs/common';
-import { DebugEvents, Events } from 'nats';
+import { DebugEvents, RetentionPolicy } from 'nats';
 
 async function bootstrap() {
-  const streamConfig: NatsStreamConfig = {
-    name: 'mystream',
-    subjects: ['order.*'],
-  };
+  const streamConfig: NatsStreamConfig[] = [
+    {
+      name: 'mystream',
+      subjects: ['order.*'],
+      retention: RetentionPolicy.Limits,
+      max_bytes: 1024 * 1024 * 1024,
+      description: 'mystream demo',
+    },
+    {
+      name: 'my-other-stream',
+      subjects: ['other.*'],
+      retention: RetentionPolicy.Limits,
+      max_bytes: 1024 * 1024 * 1024,
+      description: 'mystream other demo',
+    },
+  ];
   const logger = new Logger();
   const options: CustomStrategy = {
     strategy: new NatsJetStreamServer({

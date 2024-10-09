@@ -8,7 +8,7 @@ import {
   SubscriptionOptions,
 } from 'nats';
 
-import { from } from 'rxjs';
+import { connectable, isObservable, Subject } from 'rxjs';
 import { NATS_JETSTREAM_TRANSPORT } from './constants';
 import { NatsJetStreamServerOptions } from './interfaces/nats-jetstream-server-options.interface';
 import { NatsContext, NatsJetStreamContext } from './nats-jetstream.context';
@@ -69,7 +69,14 @@ export class NatsJetStreamServer
           try {
             const data = this.codec.decode(msg.data);
             const context = new NatsJetStreamContext([msg]);
-            this.send(from(eventHandler(data, context)), () => null);
+            const resultOrStream = await eventHandler(data, context);
+            if (isObservable(resultOrStream)) {
+              const connectableSource = connectable(resultOrStream, {
+                connector: () => new Subject(),
+                resetOnDisconnect: false,
+              });
+              connectableSource.connect();
+            }
           } catch (err) {
             this.logger.error(err.message, err.stack);
             // specifies that you failed to process the server and instructs
@@ -122,29 +129,29 @@ export class NatsJetStreamServer
     const { streamConfig } = this.options;
     const streams = await this.jsm.streams.list().next();
 
-    const streamConfigs = !Array.isArray(streamConfig)
+    const reqStreamConfigs = !Array.isArray(streamConfig)
       ? [streamConfig]
       : streamConfig;
 
-    for (const streamCfg of streamConfigs) {
+    for (const requiredStreamConfig of reqStreamConfigs) {
       const stream = streams.find(
-        (stream) => stream.config.name === streamCfg.name,
+        (stream) => stream.config.name === requiredStreamConfig.name,
       );
 
       if (stream) {
         const streamSubjects = new Set([
           ...stream.config.subjects,
-          ...streamCfg.subjects,
+          ...requiredStreamConfig.subjects,
         ]);
 
         const streamInfo = await this.jsm.streams.update(stream.config.name, {
           ...stream.config,
-          ...streamCfg,
+          ...requiredStreamConfig,
           subjects: [...streamSubjects.keys()],
         });
         this.logger.log(`Stream ${streamInfo.config.name} updated`);
       } else {
-        const streamInfo = await this.jsm.streams.add(streamCfg);
+        const streamInfo = await this.jsm.streams.add(requiredStreamConfig);
         this.logger.log(`Stream ${streamInfo.config.name} created`);
       }
     }
