@@ -23,6 +23,8 @@ npm i @nestjs-plugins/nestjs-nats-jetstream-transport
 
 Requires a maintained Node.js LTS release (Node 22 or later). On older Node versions, stay on an earlier release of this package.
 
+Supports NestJS 8, 9, 10 and 11 (`@nestjs/common` and `@nestjs/microservices` are peer dependencies). NestJS 8 and 11 are tested in CI.
+
 ## 🐳 Running Nats Jetstream server in Docker
 
 ```bash
@@ -127,6 +129,29 @@ Things to keep in mind:
 - If the handler already called `ack()`, `nak()` or `term()` on `context.message`, that first call wins and the setting has no effect.
 - Without `manualAck`, the setting only applies to errors raised before the handler returns. An Observable that errors later cannot change a message that has already been acknowledged.
 - A payload that is not valid JSON is always terminated, whatever the setting, because redelivering it cannot help.
+
+### Connection status, events and the NATS connection
+
+The server and the client work like NestJS's built-in transports here (NestJS 11 requires these members; they are available on NestJS 8 too):
+
+- **`status`**: an Observable of `connected`, `disconnected` or `reconnecting`. It replays the latest value to new subscribers and only emits changes.
+- **`on(event, callback)`**: subscribes to NATS connection events `disconnect`, `reconnect` and `update`. The callback receives the event data from the NATS client, such as the server address.
+- **`unwrap()`**: returns the underlying `NatsConnection`. It throws before the server is listening or the client has connected.
+
+The names are exported as `NatsJetStreamStatus` and `NatsJetStreamEvents`. They use the same values as NestJS's `NatsStatus` and `NatsEventsMap`.
+
+```typescript
+const server = new NatsJetStreamServer(options);
+const app = await NestFactory.createMicroservice(AppModule, { strategy: server });
+
+server.status.subscribe((status) => logger.log(`NATS ${status}`));
+server.on('disconnect', (address) => logger.warn(`NATS disconnected from ${address}`));
+
+await app.listen();
+const nc = server.unwrap<NatsConnection>();
+```
+
+What happens when the connection fails at startup is unchanged: `listen()` still does not call back or reject when NATS cannot be reached.
 
 ### NatsConnectionOptions
 

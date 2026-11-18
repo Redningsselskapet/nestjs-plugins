@@ -3,11 +3,16 @@ on:
     branches: [master]
 jobs:
   build:
+    name: build (node ${{ matrix.node-version }}, nestjs ${{ matrix.nestjs }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         node-version: [22, 24]
+        # The library supports NestJS 8-11; the oldest and newest are tested.
+        nestjs: [8, 11]
+    env:
+      LIB: '@nestjs-plugins/nestjs-nats-jetstream-transport'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,23 +28,47 @@ jobs:
       - name: Install
         run: npm ci
 
+      # The repo develops against NestJS 11. For the NestJS 8 job, swap the
+      # library's NestJS packages for 8.x without touching the lockfile.
+      # npm 10 (bundled with Node 22) ignores this --no-save install and
+      # keeps 11.x, so the install runs with npm 11 on every Node version.
+      # The check below fails the job if NestJS 8 did not end up installed.
+      - name: Use NestJS 8 for the library
+        if: matrix.nestjs == 8
+        run: |
+          npx -y npm@11 install --no-save -w "$LIB" @nestjs/common@^8 @nestjs/core@^8 @nestjs/microservices@^8
+          cd packages/nestjs-nats-jetstream-transport
+          node -e "const v=require('@nestjs/microservices/package.json').version; console.log('NestJS', v); if (!v.startsWith('8.')) process.exit(1)"
+
       # A service container cannot pass the -js flag, so start NATS directly.
       - name: Start NATS JetStream
         run: docker run -d --name nats -p 4222:4222 nats:2.10 -js
 
       # The demo apps depend on the library's dist output, so build it first.
+      # The demos use NestJS 11, so the NestJS 8 job builds the library only.
       - name: Build
         run: |
-          npx lerna run build --scope @nestjs-plugins/nestjs-nats-jetstream-transport
-          npx lerna run build --ignore @nestjs-plugins/nestjs-nats-jetstream-transport
+          npx lerna run build --scope "$LIB"
+          if [ "${{ matrix.nestjs }}" = "11" ]; then
+            npx lerna run build --ignore "$LIB"
+          fi
+
+      - name: Type-check including tests
+        run: npx tsc -p packages/nestjs-nats-jetstream-transport/tsconfig.json --noEmit
 
       - name: Lint
         run: npx lerna run lint:check
 
       - name: Test
-        run: npx lerna run test
+        run: |
+          if [ "${{ matrix.nestjs }}" = "11" ]; then
+            npx lerna run test
+          else
+            npx lerna run test --scope "$LIB"
+          fi
 
       - name: Integration test
         run: npx lerna run test:integration
         env:
           NATS_URL: nats://localhost:4222
+          NATS_CONTAINER: nats

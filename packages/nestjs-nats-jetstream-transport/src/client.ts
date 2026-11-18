@@ -13,11 +13,13 @@ import { NATS_JETSTREAM_OPTIONS } from './constants';
 import { NatsJetStreamClientOptions } from './interfaces/nats-jetstream-client-options.interface';
 import { NatsJetStreamRecord } from './utils/nats-jetstream-record.builder';
 import { NatsRequestRecord } from './utils/nats-request-record-builder';
+import { ConnectionStatus } from './utils/connection-status';
 
 @Injectable()
 export class NatsJetStreamClientProxy extends ClientProxy {
   private nc: NatsConnection;
   private codec: Codec<JSON>;
+  private readonly connectionStatus = new ConnectionStatus();
 
   constructor(
     @Inject(NATS_JETSTREAM_OPTIONS) private options: NatsJetStreamClientOptions,
@@ -29,6 +31,7 @@ export class NatsJetStreamClientProxy extends ClientProxy {
   async connect(): Promise<NatsConnection> {
     if (!this.nc) {
       this.nc = await connect(this.options.connectionOptions);
+      this.connectionStatus.track(this.nc);
       if (this.options.connectionOptions.connectedHook) {
         this.options.connectionOptions.connectedHook(this.nc);
       }
@@ -43,6 +46,28 @@ export class NatsJetStreamClientProxy extends ClientProxy {
     }
     await this.nc.drain();
     this.nc = undefined;
+    this.connectionStatus.disconnected();
+  }
+
+  /** Connection status: `connected`, `disconnected` or `reconnecting`. */
+  get status() {
+    return this.connectionStatus.status;
+  }
+
+  /** Subscribes to connection events: `disconnect`, `reconnect`, `update`. */
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  on(event: string, callback: Function) {
+    this.connectionStatus.on(event, callback);
+  }
+
+  /** Returns the underlying NATS connection. */
+  unwrap<T = NatsConnection>(): T {
+    if (!this.nc) {
+      throw new Error(
+        'Not initialized. Please call the "connect" method first.',
+      );
+    }
+    return this.nc as unknown as T;
   }
 
   protected publish(

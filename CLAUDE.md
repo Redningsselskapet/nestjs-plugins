@@ -9,7 +9,7 @@ Lerna monorepo (npm workspaces, `version: independent`) under `packages/`:
 - `nestjs-nats-jetstream-transport` — the only published package (`@nestjs-plugins/nestjs-nats-jetstream-transport`). A NestJS custom transport for NATS JetStream. Its README is the user-facing documentation for all options.
 - `nats-listener`, `nats-publisher` — private NestJS demo apps that consume/produce through the transport. `nats-listener` depends on the library via `file:../nestjs-nats-jetstream-transport` (uses local source); `nats-publisher` uses the published npm version (`^2.0.0`), so local library changes are not picked up there unless the dependency is changed.
 
-Install from the root with `npm ci` (npm workspaces). The root `package.json` also lists a `nohoist` entry, but that is a Yarn feature; npm ignores it and hoists everything to the root `node_modules`.
+Install from the root with `npm ci` (npm workspaces). Everything is developed against NestJS 11 (the library's dev dependencies and both demos); NestJS 8 compatibility is checked by the CI job that installs `@nestjs/*@^8` into the library with `npx -y npm@11 install --no-save -w @nestjs-plugins/nestjs-nats-jetstream-transport @nestjs/common@^8 @nestjs/core@^8 @nestjs/microservices@^8` (npm 10 silently keeps 11.x). Run the same command locally to test on NestJS 8, and `npm ci` to go back. The root `package.json` also lists a `nohoist` entry, but that is a Yarn feature; npm ignores it and hoists everything to the root `node_modules`.
 
 ## Commands
 
@@ -23,7 +23,7 @@ npm run lint              # eslint --fix;  npm run lint:check for CI (no fix)
 npm run format            # prettier
 npm test                  # jest unit tests, src/**/*.spec.ts (nats connect is mocked)
 npx jest src/server.spec.ts -t "nak"      # single file / single test
-npm run test:integration  # test/*.int-spec.ts against a real server at $NATS_URL (default nats://localhost:4222)
+npm run test:integration  # test/*.int-spec.ts against a real server at $NATS_URL (default nats://localhost:4222); set NATS_CONTAINER=<docker container> to include the NATS restart test
 
 # demo apps (nats-listener / nats-publisher)
 npm run start:dev
@@ -52,6 +52,7 @@ docker run -d --name nats-main -p 4222:4222 -p 6222:6222 -p 8222:8222 nats -js -
 - `listen()` does not call its callback or reject when the connection or stream setup fails; downstream services work around this with retry loops, so don't change it in a minor release.
 - NestJS 8 calls the strategy's `close()` twice when an app shuts down; `close()` must stay idempotent.
 - **Durable naming:** when `durable` is set, the actual consumer name is `${durable}-${subject}` with `.` → `_` and `*`/`>` → `_ALL` (one durable per subject). Changing this breaks existing consumers on deployed servers.
+- **One build for NestJS 8–11.** `@nestjs/common` and `@nestjs/microservices` are peer dependencies (`^8 || ^9 || ^10 || ^11`). The NestJS 11 contract members (`status`, `on()`, `unwrap()`) are implemented in `utils/connection-status.ts` and copy NestJS's own NATS transport. New code must not rely at runtime on base-class members that only exist in NestJS 11 (such as `_status$`), because on NestJS 8 they are missing.
 - Everything public must be re-exported from `src/index.ts`.
 
 ## Release process (GitHub Actions)

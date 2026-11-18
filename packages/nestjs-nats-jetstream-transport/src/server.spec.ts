@@ -38,6 +38,7 @@ function fakeSubscription(messages: FakeJsMsg[]) {
 function fakeConnection(options: {
   messages?: FakeJsMsg[];
   streams?: { config: { name: string; subjects: string[] } }[];
+  statusUpdates?: { type: string; data?: unknown }[];
 }) {
   const subscription = fakeSubscription(options.messages ?? []);
   const streams = options.streams ?? [];
@@ -67,6 +68,13 @@ function fakeConnection(options: {
     drain: jest.fn(async () => undefined),
     isDraining: jest.fn(() => false),
     isClosed: jest.fn(() => false),
+    status: jest.fn(() =>
+      (async function* () {
+        for (const u of options.statusUpdates ?? []) {
+          yield u;
+        }
+      })(),
+    ),
   };
   (connect as jest.Mock).mockResolvedValue(nc);
   return { nc, jsm, subscription };
@@ -304,6 +312,60 @@ describe('NatsJetStreamServer', () => {
 
       expect(jsm.streams.add).toHaveBeenCalledWith(config);
       expect(jsm.streams.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('NestJS 11 transport members', () => {
+    it('unwrap() throws before listen and returns the connection after', async () => {
+      const { nc } = fakeConnection({});
+      const server = new NatsJetStreamServer(baseOptions);
+
+      expect(() => server.unwrap()).toThrow(/Not initialized/);
+      await listen(server);
+      expect(server.unwrap()).toBe(nc);
+    });
+
+    it('reports status and forwards connection events', async () => {
+      fakeConnection({
+        statusUpdates: [
+          { type: 'disconnect', data: 'nats://a' },
+          { type: 'reconnecting' },
+          { type: 'reconnect', data: 'nats://a' },
+        ],
+      });
+      const server = new NatsJetStreamServer(baseOptions);
+      const seen: string[] = [];
+      const events: [string, unknown][] = [];
+      server.status.subscribe((s) => seen.push(s));
+      server.on('disconnect', (d: unknown) => events.push(['disconnect', d]));
+      server.on('reconnect', (d: unknown) => events.push(['reconnect', d]));
+
+      await listen(server);
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(seen).toEqual([
+        'connected',
+        'disconnected',
+        'reconnecting',
+        'connected',
+      ]);
+      expect(events).toEqual([
+        ['disconnect', 'nats://a'],
+        ['reconnect', 'nats://a'],
+      ]);
+    });
+
+    it('reports disconnected after close', async () => {
+      fakeConnection({});
+      const server = new NatsJetStreamServer(baseOptions);
+      const seen: string[] = [];
+      server.status.subscribe((s) => seen.push(s));
+
+      await listen(server);
+      await server.close();
+
+      expect(seen).toEqual(['connected', 'disconnected']);
+      expect(() => server.unwrap()).toThrow(/Not initialized/);
     });
   });
 
