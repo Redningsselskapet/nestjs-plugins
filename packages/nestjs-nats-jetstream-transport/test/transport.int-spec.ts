@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { execFileSync } from 'child_process';
 import { Controller, INestMicroservice, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import {
@@ -71,16 +72,20 @@ class TestController {
 class TestModule {}
 
 let admin: NatsConnection;
+let server: NatsJetStreamServer | undefined;
 let jsm: JetStreamManager;
 let app: INestMicroservice | undefined;
 let client: NatsJetStreamClientProxy | undefined;
 let durableCounter = 0;
 
-async function boot(options: Partial<NatsJetStreamServerOptions> = {}) {
+async function boot(
+  options: Partial<NatsJetStreamServerOptions> = {},
+  storage: StorageType = StorageType.Memory,
+) {
   const { consumerOptions, ...rest } = options;
   app = await NestFactory.createMicroservice(TestModule, {
     logger: false,
-    strategy: new NatsJetStreamServer({
+    strategy: (server = new NatsJetStreamServer({
       connectionOptions: { servers: NATS_URL, name: `${RUN}-server` },
       consumerOptions: {
         durable: `${RUN}-durable-${++durableCounter}`,
@@ -93,11 +98,11 @@ async function boot(options: Partial<NatsJetStreamServerOptions> = {}) {
       streamConfig: {
         name: STREAM,
         subjects: SUBJECTS,
-        storage: StorageType.Memory,
+        storage,
         retention: RetentionPolicy.Limits,
       },
       ...rest,
-    }),
+    })),
   });
   await app.listen();
   client = new NatsJetStreamClientProxy({
@@ -139,6 +144,7 @@ afterEach(async () => {
   } finally {
     client = undefined;
     app = undefined;
+    server = undefined;
     deliveries.ok = [];
     deliveries.fail = [];
     await deleteStreams(RUN);
@@ -261,4 +267,34 @@ describe('NatsJetStream transport against a real server', () => {
       [`${RUN}.target.a`, `${RUN}.target.b`].sort(),
     );
   });
+  // Restarts the NATS server, so it only runs when the test is told which
+  // Docker container that is (NATS_CONTAINER). CI sets it.
+  const itWithContainer = process.env.NATS_CONTAINER ? it : it.skip;
+  itWithContainer(
+    'reports a NATS restart through status and on(), and keeps consuming',
+    async () => {
+      // A file-backed stream survives the restart; a memory stream would not.
+      await boot({}, StorageType.File);
+      const seen: string[] = [];
+      const events: string[] = [];
+      server.status.subscribe((s) => seen.push(s));
+      server.on('disconnect', () => events.push('disconnect'));
+      server.on('reconnect', () => events.push('reconnect'));
+      expect(server.unwrap<NatsConnection>().isClosed()).toBe(false);
+
+      execFileSync('docker', ['restart', process.env.NATS_CONTAINER]);
+
+      expect(await waitFor(() => events.includes('reconnect'), 30000)).toBe(
+        true,
+      );
+      expect(seen).toEqual(
+        expect.arrayContaining(['connected', 'disconnected']),
+      );
+      expect(seen[seen.length - 1]).toBe('connected');
+      expect(events.slice(0, 1)).toEqual(['disconnect']);
+
+      await lastValueFrom(client.emit('itest.ok', { id: 5 }));
+      expect(await waitFor(() => deliveries.ok.length === 1, 10000)).toBe(true);
+    },
+  );
 });

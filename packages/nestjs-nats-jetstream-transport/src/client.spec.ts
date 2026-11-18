@@ -13,6 +13,12 @@ function fakeConnection() {
   const nc = {
     jetstream: jest.fn((_options?: unknown) => js),
     drain: jest.fn(async () => undefined),
+    status: jest.fn(() =>
+      (async function* () {
+        yield { type: 'disconnect', data: 'nats://a' };
+        yield { type: 'reconnect', data: 'nats://a' };
+      })(),
+    ),
   };
   (connect as jest.Mock).mockResolvedValue(nc);
   return { nc, js };
@@ -67,6 +73,39 @@ describe('NatsJetStreamClientProxy', () => {
     expect(await client.connect()).toBe(nc);
     expect(await client.connect()).toBe(nc);
     expect(connect).toHaveBeenCalledTimes(1);
+  });
+
+  describe('NestJS 11 transport members', () => {
+    it('unwrap() throws before connect and returns the connection after', async () => {
+      const { nc } = fakeConnection();
+      const client = new NatsJetStreamClientProxy({ connectionOptions });
+
+      expect(() => client.unwrap()).toThrow(/Not initialized/);
+      await client.connect();
+      expect(client.unwrap()).toBe(nc);
+    });
+
+    it('reports status and forwards connection events', async () => {
+      fakeConnection();
+      const client = new NatsJetStreamClientProxy({ connectionOptions });
+      const seen: string[] = [];
+      const events: string[] = [];
+      client.status.subscribe((s) => seen.push(s));
+      client.on('disconnect', () => events.push('disconnect'));
+      client.on('reconnect', () => events.push('reconnect'));
+
+      await client.connect();
+      await new Promise((resolve) => setImmediate(resolve));
+      await client.close();
+
+      expect(seen).toEqual([
+        'connected',
+        'disconnected',
+        'connected',
+        'disconnected',
+      ]);
+      expect(events).toEqual(['disconnect', 'reconnect']);
+    });
   });
 
   describe('close', () => {
