@@ -5,6 +5,7 @@ import {
   JetStreamManager,
   JSONCodec,
   NatsConnection,
+  StreamInfo,
   SubscriptionOptions,
 } from 'nats';
 
@@ -46,6 +47,9 @@ export class NatsJetStreamServer
   }
 
   async close() {
+    if (!this.nc) {
+      return;
+    }
     await this.nc.drain();
     this.nc = undefined;
   }
@@ -55,7 +59,8 @@ export class NatsJetStreamServer
       ([, handler]) => handler.isEventHandler,
     );
 
-    const js = this.nc.jetstream(this.options.jetStreamOptions);
+    const nc = this.nc;
+    const js = nc.jetstream(this.options.jetStreamOptions);
 
     for (const [subject, eventHandler] of eventHandlers) {
       const consumerOptions = serverConsumerOptionsBuilder(
@@ -66,8 +71,17 @@ export class NatsJetStreamServer
       this.logger.log(`Subscribed to ${subject} events`);
       const done = (async () => {
         for await (const msg of subscription) {
+          let data: unknown;
           try {
-            const data = this.codec.decode(msg.data);
+            data = this.codec.decode(msg.data);
+          } catch (err) {
+            this.logger.error(err.message, err.stack);
+            // A payload that cannot be decoded will never succeed, so tell
+            // the server not to send it again (to any consumer).
+            msg.term();
+            continue;
+          }
+          try {
             const context = new NatsJetStreamContext([msg]);
             const resultOrStream = await eventHandler(data, context);
             if (isObservable(resultOrStream)) {
@@ -79,15 +93,13 @@ export class NatsJetStreamServer
             }
           } catch (err) {
             this.logger.error(err.message, err.stack);
-            // specifies that you failed to process the server and instructs
-            // the server to not send it again (to any consumer)
             msg.term();
           }
         }
       })();
       done.then(() => {
         // if the connection is closed or draining, we don't need to unsubscribe as the subscription will be unsubscribed automatically
-        if (this.nc.isDraining() || this.nc.isClosed()) {
+        if (nc.isDraining() || nc.isClosed()) {
           return;
         }
         subscription.destroy();
@@ -109,7 +121,24 @@ export class NatsJetStreamServer
           if (err) {
             return this.logger.error(err.message, err.stack);
           }
-          const payload = this.codec.decode(msg.data);
+          let payload: unknown;
+          try {
+            payload = this.codec.decode(msg.data);
+          } catch (decodeErr) {
+            this.logger.error(
+              `Could not decode request on ${msg.subject}: ${decodeErr.message}`,
+              decodeErr.stack,
+            );
+            // Answer with an error packet so the caller fails now instead of
+            // waiting for its request timeout.
+            msg.respond(
+              this.codec.encode({
+                err: { status: 'error', message: 'Invalid JSON payload' },
+                isDisposed: true,
+              } as unknown as JSON),
+            );
+            return;
+          }
           const context = new NatsContext([msg]);
           const response$ = this.transformToObservable(
             messageHandler(payload, context),
@@ -127,7 +156,11 @@ export class NatsJetStreamServer
 
   private async setupStream() {
     const { streamConfig } = this.options;
-    const streams = await this.jsm.streams.list().next();
+    // Read every page; the first page alone misses streams on busy servers.
+    const streams: StreamInfo[] = [];
+    for await (const streamInfo of this.jsm.streams.list()) {
+      streams.push(streamInfo);
+    }
 
     const reqStreamConfigs = !Array.isArray(streamConfig)
       ? [streamConfig]
