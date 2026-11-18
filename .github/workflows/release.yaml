@@ -1,6 +1,16 @@
+# Publishes to npm when a GitHub release is created.
+#
+# Uses npm trusted publishing (OIDC): npm trusts this workflow directly, so no
+# NPM_TOKEN is needed. One-time setup on npmjs.com, per published package:
+#   Package settings -> Trusted publisher -> GitHub Actions
+#   Organization: Redningsselskapet, Repository: nestjs-plugins,
+#   Workflow filename: release.yaml
 on:
   release:
     types: [created]
+permissions:
+  contents: write
+  id-token: write # required for npm trusted publishing
 jobs:
   build:
     env:
@@ -11,32 +21,57 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: master
           token: ${{ secrets.CI_REPOSITORY_ACCESS_TOKEN }}
 
-      - name: Setup NodeJS 22
+      - name: Setup NodeJS 24
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs npm 11.5.1 or later.
+      - name: Update npm
+        run: npm install -g npm@^11.5.1
 
       # Installs the repo's own lerna so npx does not fetch whatever is latest.
       - name: Install
         run: npm ci
-      
-      - name: Setup Git Config 
+
+      - name: Setup Git Config
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-      - name: Promote to prod
+      # Turns prerelease versions into final ones and commits and tags them
+      # locally. Nothing is pushed until publishing has succeeded.
+      - name: Graduate versions
+        run: npx lerna version --conventional-commits --conventional-graduate -m "Publish" --no-push --force-git-tag --yes
+
+      - name: Build
+        run: npx lerna run build --no-private
+
+      # Lerna's own publish cannot use trusted publishing, so publish with the
+      # npm CLI. Only versions that are not on npm yet are published, so a
+      # release with nothing new is a no-op.
+      - name: Publish to npm
         run: |
-          git checkout master
-          npx lerna publish --no-verify-access --conventional-commits --conventional-graduate -m "publish" --no-push --force-git-tag -y
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      
-      - name: Push changes rs-marine-services
+          npx lerna list --no-private --json | node -e '
+            const pkgs = JSON.parse(require("fs").readFileSync(0, "utf8"));
+            for (const p of pkgs) console.log([p.name, p.version, p.location].join("\t"));
+          ' | while IFS=$'\t' read -r name version location; do
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version is already on npm, skipping"
+            else
+              echo "Publishing $name@$version"
+              (cd "$location" && npm publish --access public --provenance)
+            fi
+          done
+
+      - name: Push changes
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.CI_REPOSITORY_ACCESS_TOKEN }}
-  
+          branch: master
+          tags: true
