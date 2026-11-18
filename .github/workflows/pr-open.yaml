@@ -30,10 +30,13 @@ jobs:
 
       # The repo develops against NestJS 11. For the NestJS 8 job, swap the
       # library's NestJS packages for 8.x without touching the lockfile.
+      # npm 10 (bundled with Node 22) ignores this --no-save install and
+      # keeps 11.x, so the install runs with npm 11 on every Node version.
+      # The check below fails the job if NestJS 8 did not end up installed.
       - name: Use NestJS 8 for the library
         if: matrix.nestjs == 8
         run: |
-          npm install --no-save -w "$LIB" @nestjs/common@^8 @nestjs/core@^8 @nestjs/microservices@^8
+          npx -y npm@11 install --no-save -w "$LIB" @nestjs/common@^8 @nestjs/core@^8 @nestjs/microservices@^8
           cd packages/nestjs-nats-jetstream-transport
           node -e "const v=require('@nestjs/microservices/package.json').version; console.log('NestJS', v); if (!v.startsWith('8.')) process.exit(1)"
 
