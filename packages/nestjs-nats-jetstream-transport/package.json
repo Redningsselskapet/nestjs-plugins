@@ -24,7 +24,7 @@
   ],
   "scripts": {
     "test": "jest",
-    "test:integration": "jest --config ./test/jest-integration.json --runInBand",
+    "test:integration": "jest --config ./test/jest-integration.json --runInBand --forceExit",
     "build": "rimraf dist && tsc -p tsconfig.build.json",
     "watch": "tsc -w -p tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
