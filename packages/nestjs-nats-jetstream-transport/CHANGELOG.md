@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.4.0-pre.0](https://github.com/Redningsselskapet/nestjs-plugins/compare/@nestjs-plugins/nestjs-nats-jetstream-transport@2.3.1...@nestjs-plugins/nestjs-nats-jetstream-transport@2.4.0-pre.0) (2026-11-18)
+
+
+### Features
+
+* support NestJS 11 custom transport contract (status, on, unwrap) ([c2c6160](https://github.com/Redningsselskapet/nestjs-plugins/commit/c2c6160e75078ebe116ff65239b216574811ca7d))
+
+
+
+
+
 ## [2.3.1](https://github.com/Redningsselskapet/nestjs-plugins/compare/@nestjs-plugins/nestjs-nats-jetstream-transport@2.3.1-pre.0...@nestjs-plugins/nestjs-nats-jetstream-transport@2.3.1) (2026-11-18)
 
 **Note:** Version bump only for package @nestjs-plugins/nestjs-nats-jetstream-transport
