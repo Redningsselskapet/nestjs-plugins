@@ -1,4 +1,7 @@
-import { NatsJetStreamContext } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+import {
+  NatsContext,
+  NatsJetStreamContext,
+} from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { Controller, Get } from '@nestjs/common';
 import {
   Ctx,
@@ -102,7 +105,7 @@ export class AppController {
   @MessagePattern({ cmd: 'sum' })
   async accumulate(
     @Payload() data: number[],
-    @Ctx() context: NatsJetStreamContext,
+    @Ctx() context: NatsContext,
   ): Promise<number> {
     console.log(context.message.headers);
     console.log('message conroller', data);
@@ -112,7 +115,7 @@ export class AppController {
   @MessagePattern('price-calculation')
   async koko(
     @Payload() data: number[],
-    @Ctx() context: NatsJetStreamContext,
+    @Ctx() context: NatsContext,
   ): Promise<number> {
     console.log('price-calculation', data);
     return;

@@ -8,15 +8,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.CI_REPOSITORY_ACCESS_TOKEN }}
 
-      - name: Setup NodeJS 14
-        uses: actions/setup-node@v1
+      - name: Setup NodeJS 22
+        uses: actions/setup-node@v4
         with:
-          node-version: 14
+          node-version: 22
+          cache: npm
+
+      # Installs the repo's own lerna so npx does not fetch whatever is latest.
+      - name: Install
+        run: npm ci
       
       - name: Setup Git Config 
         run: |

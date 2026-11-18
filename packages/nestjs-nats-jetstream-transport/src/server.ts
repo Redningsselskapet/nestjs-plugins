@@ -4,12 +4,15 @@ import {
   connect,
   JetStreamManager,
   JSONCodec,
+  JsMsg,
   NatsConnection,
+  StreamInfo,
   SubscriptionOptions,
 } from 'nats';
 
 import { connectable, isObservable, Subject } from 'rxjs';
 import { NATS_JETSTREAM_TRANSPORT } from './constants';
+import { EventHandlerErrorOptions } from './interfaces/event-handler-error-options.interface';
 import { NatsJetStreamServerOptions } from './interfaces/nats-jetstream-server-options.interface';
 import { NatsContext, NatsJetStreamContext } from './nats-jetstream.context';
 import { serverConsumerOptionsBuilder } from './utils/server-consumer-options-builder';
@@ -26,6 +29,7 @@ export class NatsJetStreamServer
   constructor(private options: NatsJetStreamServerOptions) {
     super();
     this.codec = JSONCodec();
+    validateEventHandlerErrorOptions(options.eventHandlerError);
   }
 
   async listen(callback: () => void) {
@@ -46,6 +50,9 @@ export class NatsJetStreamServer
   }
 
   async close() {
+    if (!this.nc) {
+      return;
+    }
     await this.nc.drain();
     this.nc = undefined;
   }
@@ -55,7 +62,8 @@ export class NatsJetStreamServer
       ([, handler]) => handler.isEventHandler,
     );
 
-    const js = this.nc.jetstream(this.options.jetStreamOptions);
+    const nc = this.nc;
+    const js = nc.jetstream(this.options.jetStreamOptions);
 
     for (const [subject, eventHandler] of eventHandlers) {
       const consumerOptions = serverConsumerOptionsBuilder(
@@ -66,8 +74,17 @@ export class NatsJetStreamServer
       this.logger.log(`Subscribed to ${subject} events`);
       const done = (async () => {
         for await (const msg of subscription) {
+          let data: unknown;
           try {
-            const data = this.codec.decode(msg.data);
+            data = this.codec.decode(msg.data);
+          } catch (err) {
+            this.logger.error(err.message, err.stack);
+            // A payload that cannot be decoded will never succeed, so tell
+            // the server not to send it again (to any consumer).
+            msg.term();
+            continue;
+          }
+          try {
             const context = new NatsJetStreamContext([msg]);
             const resultOrStream = await eventHandler(data, context);
             if (isObservable(resultOrStream)) {
@@ -75,19 +92,26 @@ export class NatsJetStreamServer
                 connector: () => new Subject(),
                 resetOnDisconnect: false,
               });
+              // Nest turns handler exceptions into an erroring Observable and
+              // logs them, so this is where a failed handler surfaces.
+              connectableSource.subscribe({
+                error: () => this.onEventHandlerError(msg),
+              });
               connectableSource.connect();
             }
           } catch (err) {
             this.logger.error(err.message, err.stack);
-            // specifies that you failed to process the server and instructs
-            // the server to not send it again (to any consumer)
-            msg.term();
+            if (this.options.eventHandlerError) {
+              this.onEventHandlerError(msg);
+            } else {
+              msg.term();
+            }
           }
         }
       })();
       done.then(() => {
         // if the connection is closed or draining, we don't need to unsubscribe as the subscription will be unsubscribed automatically
-        if (this.nc.isDraining() || this.nc.isClosed()) {
+        if (nc.isDraining() || nc.isClosed()) {
           return;
         }
         subscription.destroy();
@@ -109,7 +133,24 @@ export class NatsJetStreamServer
           if (err) {
             return this.logger.error(err.message, err.stack);
           }
-          const payload = this.codec.decode(msg.data);
+          let payload: unknown;
+          try {
+            payload = this.codec.decode(msg.data);
+          } catch (decodeErr) {
+            this.logger.error(
+              `Could not decode request on ${msg.subject}: ${decodeErr.message}`,
+              decodeErr.stack,
+            );
+            // Answer with an error packet so the caller fails now instead of
+            // waiting for its request timeout.
+            msg.respond(
+              this.codec.encode({
+                err: { status: 'error', message: 'Invalid JSON payload' },
+                isDisposed: true,
+              } as unknown as JSON),
+            );
+            return;
+          }
           const context = new NatsContext([msg]);
           const response$ = this.transformToObservable(
             messageHandler(payload, context),
@@ -125,9 +166,30 @@ export class NatsJetStreamServer
     }
   }
 
+  /**
+   * Settle a message whose event handler failed, as configured by
+   * `eventHandlerError`. Without that option the message is left alone, which
+   * is how earlier versions behaved.
+   */
+  private onEventHandlerError(msg: JsMsg) {
+    const handling = this.options.eventHandlerError;
+    if (!handling) {
+      return;
+    }
+    if (handling.action === 'term') {
+      msg.term();
+    } else {
+      msg.nak(handling.nakDelay);
+    }
+  }
+
   private async setupStream() {
     const { streamConfig } = this.options;
-    const streams = await this.jsm.streams.list().next();
+    // Read every page; the first page alone misses streams on busy servers.
+    const streams: StreamInfo[] = [];
+    for await (const streamInfo of this.jsm.streams.list()) {
+      streams.push(streamInfo);
+    }
 
     const reqStreamConfigs = !Array.isArray(streamConfig)
       ? [streamConfig]
@@ -155,5 +217,31 @@ export class NatsJetStreamServer
         this.logger.log(`Stream ${streamInfo.config.name} created`);
       }
     }
+  }
+}
+
+function validateEventHandlerErrorOptions(options?: EventHandlerErrorOptions) {
+  if (!options) {
+    return;
+  }
+  if (options.action !== 'term' && options.action !== 'nak') {
+    throw new Error(
+      `eventHandlerError.action must be 'term' or 'nak', got ${JSON.stringify(
+        options.action,
+      )}`,
+    );
+  }
+  if (options.nakDelay === undefined) {
+    return;
+  }
+  if (options.action !== 'nak') {
+    throw new Error(
+      "eventHandlerError.nakDelay is only valid with action 'nak'",
+    );
+  }
+  if (!Number.isFinite(options.nakDelay) || options.nakDelay < 0) {
+    throw new Error(
+      `eventHandlerError.nakDelay must be a number of milliseconds >= 0, got ${options.nakDelay}`,
+    );
   }
 }

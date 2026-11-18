@@ -7,6 +7,7 @@ export * from './interfaces/nats-jetstream-client-options.interface';
 export * from './interfaces/nats-jetstream-server-options.interface';
 export * from './interfaces/server-consumer-options.interface';
 export * from './interfaces/nats-stream-config.interface';
+export * from './interfaces/event-handler-error-options.interface';
 export * from './utils/server-consumer-options-builder';
 export * from './nats-jetstream.context';
 
