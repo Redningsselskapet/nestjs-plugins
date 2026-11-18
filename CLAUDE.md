@@ -60,6 +60,6 @@ Versioning is driven by **conventional commits** (`lerna version --conventional-
 
 - PR to `master` → on Node 22 and 24: `npm ci`, NATS JetStream in Docker, build (library first), `lerna run lint:check`, `lerna run test`, `lerna run test:integration`.
 - PR merged → CI bumps changed packages to a prerelease (`--preid pre`) and pushes.
-- GitHub release created → `lerna publish --conventional-graduate` promotes prereleases and publishes to npm.
+- GitHub release created → `release.yaml` graduates prereleases with `lerna version` (local commit and tags), builds, publishes every public package version not yet on npm with `npm publish --provenance`, and only then pushes. Publishing uses npm trusted publishing (OIDC, no token), which must be enabled for each package on npmjs.com with `release.yaml` as the workflow. Lerna's own `publish` is not used because it cannot do trusted publishing.
 
 Don't bump versions or edit CHANGELOGs by hand; CI does it.
