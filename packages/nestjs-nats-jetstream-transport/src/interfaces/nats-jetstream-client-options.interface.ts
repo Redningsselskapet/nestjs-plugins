@@ -5,7 +5,9 @@ import { NatsConnectionOptions } from './nats-connection-options.interface';
 export interface NatsJetStreamClientOptions {
   connectionOptions: Partial<NatsConnectionOptions> &
     Pick<ConnectionOptions, 'name'>;
+  /** @deprecated Use `jetStreamOptions`, which takes precedence when both are set. */
   jetStreamOption?: JetStreamOptions;
+  jetStreamOptions?: JetStreamOptions;
 }
 
 // noinspection JSUnusedGlobalSymbols

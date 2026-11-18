@@ -4,6 +4,7 @@ import {
   connect,
   JetStreamManager,
   JSONCodec,
+  JsMsg,
   NatsConnection,
   StreamInfo,
   SubscriptionOptions,
@@ -11,6 +12,7 @@ import {
 
 import { connectable, isObservable, Subject } from 'rxjs';
 import { NATS_JETSTREAM_TRANSPORT } from './constants';
+import { EventHandlerErrorOptions } from './interfaces/event-handler-error-options.interface';
 import { NatsJetStreamServerOptions } from './interfaces/nats-jetstream-server-options.interface';
 import { NatsContext, NatsJetStreamContext } from './nats-jetstream.context';
 import { serverConsumerOptionsBuilder } from './utils/server-consumer-options-builder';
@@ -27,6 +29,7 @@ export class NatsJetStreamServer
   constructor(private options: NatsJetStreamServerOptions) {
     super();
     this.codec = JSONCodec();
+    validateEventHandlerErrorOptions(options.eventHandlerError);
   }
 
   async listen(callback: () => void) {
@@ -89,11 +92,20 @@ export class NatsJetStreamServer
                 connector: () => new Subject(),
                 resetOnDisconnect: false,
               });
+              // Nest turns handler exceptions into an erroring Observable and
+              // logs them, so this is where a failed handler surfaces.
+              connectableSource.subscribe({
+                error: () => this.onEventHandlerError(msg),
+              });
               connectableSource.connect();
             }
           } catch (err) {
             this.logger.error(err.message, err.stack);
-            msg.term();
+            if (this.options.eventHandlerError) {
+              this.onEventHandlerError(msg);
+            } else {
+              msg.term();
+            }
           }
         }
       })();
@@ -154,6 +166,23 @@ export class NatsJetStreamServer
     }
   }
 
+  /**
+   * Settle a message whose event handler failed, as configured by
+   * `eventHandlerError`. Without that option the message is left alone, which
+   * is how earlier versions behaved.
+   */
+  private onEventHandlerError(msg: JsMsg) {
+    const handling = this.options.eventHandlerError;
+    if (!handling) {
+      return;
+    }
+    if (handling.action === 'term') {
+      msg.term();
+    } else {
+      msg.nak(handling.nakDelay);
+    }
+  }
+
   private async setupStream() {
     const { streamConfig } = this.options;
     // Read every page; the first page alone misses streams on busy servers.
@@ -188,5 +217,31 @@ export class NatsJetStreamServer
         this.logger.log(`Stream ${streamInfo.config.name} created`);
       }
     }
+  }
+}
+
+function validateEventHandlerErrorOptions(options?: EventHandlerErrorOptions) {
+  if (!options) {
+    return;
+  }
+  if (options.action !== 'term' && options.action !== 'nak') {
+    throw new Error(
+      `eventHandlerError.action must be 'term' or 'nak', got ${JSON.stringify(
+        options.action,
+      )}`,
+    );
+  }
+  if (options.nakDelay === undefined) {
+    return;
+  }
+  if (options.action !== 'nak') {
+    throw new Error(
+      "eventHandlerError.nakDelay is only valid with action 'nak'",
+    );
+  }
+  if (!Number.isFinite(options.nakDelay) || options.nakDelay < 0) {
+    throw new Error(
+      `eventHandlerError.nakDelay must be a number of milliseconds >= 0, got ${options.nakDelay}`,
+    );
   }
 }

@@ -79,7 +79,8 @@ export class NatsJetStreamClientProxy extends ClientProxy {
     packet: ReadPacket<NatsJetStreamRecord>,
   ): Promise<any> {
     const subject = this.normalizePattern(packet.pattern);
-    const jetStreamOpts = this.options.jetStreamOption;
+    const jetStreamOpts =
+      this.options.jetStreamOptions ?? this.options.jetStreamOption;
     const js = this.nc.jetstream(jetStreamOpts);
 
     if (packet.data instanceof NatsJetStreamRecord) {
