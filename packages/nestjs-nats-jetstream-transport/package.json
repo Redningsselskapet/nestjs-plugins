@@ -23,14 +23,19 @@
     "messaging"
   ],
   "scripts": {
-    "test": "exit 0",
-    "build": "rimraf dist && tsc",
-    "watch": "tsc -w",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
+    "test": "jest",
+    "test:integration": "jest --config ./test/jest-integration.json --runInBand",
+    "build": "rimraf dist && tsc -p tsconfig.build.json",
+    "watch": "tsc -w -p tsconfig.build.json",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "lint:check": "eslint \"{src,apps,libs,test}/**/*.ts\""
   },
   "author": "Bernt Anker [bernt.anker@gmail.com]",
   "license": "ISC",
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "nats": "^2.19.0",
     "reflect-metadata": "^0.1.13",
@@ -40,12 +45,28 @@
     "@nestjs/common": "^8.2.0",
     "@nestjs/core": "^8.2.0",
     "@nestjs/microservices": "^8.2.0",
+    "@types/jest": "^29.5.14",
     "@typescript-eslint/eslint-plugin": "^5.33.1",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "jest": "^29.7.0",
     "prettier": "^2.7.1",
     "rimraf": "^3.0.2",
+    "ts-jest": "^29.2.5",
     "typescript": "^4.4.4"
   },
-  "gitHead": "9e421b9dc56d345d607c19f74570164e08679224"
+  "gitHead": "9e421b9dc56d345d607c19f74570164e08679224",
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "testEnvironment": "node"
+  }
 }
