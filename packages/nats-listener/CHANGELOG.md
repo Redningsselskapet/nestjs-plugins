@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.13-pre.0](https://github.com/Redningsselskapet/nestjs-plugins/compare/nats-listener@0.1.12...nats-listener@0.1.13-pre.0) (2026-11-18)
+
+
+### Bug Fixes
+
+* **demo:** use NatsContext for request/reply handlers in nats-listener ([eb3455a](https://github.com/Redningsselskapet/nestjs-plugins/commit/eb3455a8c2a2199b2df10f4b3d53b91e835efa20))
+
+
+
+
+
 ## [0.1.12-pre.0](https://github.com/Redningsselskapet/nestjs-plugins/compare/nats-listener@0.1.11...nats-listener@0.1.12-pre.0) (2023-07-13)
 
 **Note:** Version bump only for package nats-listener

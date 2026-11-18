@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.3.0-pre.0](https://github.com/Redningsselskapet/nestjs-plugins/compare/@nestjs-plugins/nestjs-nats-jetstream-transport@2.2.6...@nestjs-plugins/nestjs-nats-jetstream-transport@2.3.0-pre.0) (2026-11-18)
+
+
+### Bug Fixes
+
+* harden close, request decoding and stream setup ([d38e84b](https://github.com/Redningsselskapet/nestjs-plugins/commit/d38e84bb8e0f08246ec7bbd038fd51291067c7ee))
+
+
+### Features
+
+* configurable handling of failed event handlers and jetStreamOptions alias ([a0b3844](https://github.com/Redningsselskapet/nestjs-plugins/commit/a0b3844339094e8b8010aec8c5715263df5646b4))
+
+
+
+
+
 ## [1.4.5-pre.0](https://github.com/Redningsselskapet/nestjs-plugins/compare/@nestjs-plugins/nestjs-nats-jetstream-transport@1.4.4...@nestjs-plugins/nestjs-nats-jetstream-transport@1.4.5-pre.0) (2023-07-13)
 
 **Note:** Version bump only for package @nestjs-plugins/nestjs-nats-jetstream-transport
