@@ -15,6 +15,7 @@ import { NATS_JETSTREAM_TRANSPORT } from './constants';
 import { EventHandlerErrorOptions } from './interfaces/event-handler-error-options.interface';
 import { NatsJetStreamServerOptions } from './interfaces/nats-jetstream-server-options.interface';
 import { NatsContext, NatsJetStreamContext } from './nats-jetstream.context';
+import { ConnectionStatus } from './utils/connection-status';
 import { serverConsumerOptionsBuilder } from './utils/server-consumer-options-builder';
 
 export class NatsJetStreamServer
@@ -25,6 +26,7 @@ export class NatsJetStreamServer
   private nc: NatsConnection;
   private codec: Codec<JSON>;
   private jsm: JetStreamManager;
+  private readonly connectionStatus = new ConnectionStatus();
 
   constructor(private options: NatsJetStreamServerOptions) {
     super();
@@ -35,6 +37,7 @@ export class NatsJetStreamServer
   async listen(callback: () => void) {
     if (!this.nc) {
       this.nc = await connect(this.options.connectionOptions);
+      this.connectionStatus.track(this.nc);
       if (this.options.connectionOptions.connectedHook) {
         this.options.connectionOptions.connectedHook(this.nc);
       }
@@ -55,6 +58,28 @@ export class NatsJetStreamServer
     }
     await this.nc.drain();
     this.nc = undefined;
+    this.connectionStatus.disconnected();
+  }
+
+  /** Connection status: `connected`, `disconnected` or `reconnecting`. */
+  get status() {
+    return this.connectionStatus.status;
+  }
+
+  /** Subscribes to connection events: `disconnect`, `reconnect`, `update`. */
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  on(event: string, callback: Function) {
+    this.connectionStatus.on(event, callback);
+  }
+
+  /** Returns the underlying NATS connection. */
+  unwrap<T = NatsConnection>(): T {
+    if (!this.nc) {
+      throw new Error(
+        'Not initialized. Please call the "listen"/"startAllMicroservices" method before accessing the server.',
+      );
+    }
+    return this.nc as unknown as T;
   }
 
   private async bindEventHandlers() {
@@ -155,9 +180,9 @@ export class NatsJetStreamServer
           const response$ = this.transformToObservable(
             messageHandler(payload, context),
           );
-          this.send(response$, (response) =>
-            msg.respond(this.codec.encode(response as JSON)),
-          );
+          this.send(response$, (response) => {
+            msg.respond(this.codec.encode(response as JSON));
+          });
         },
       };
 

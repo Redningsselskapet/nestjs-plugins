@@ -13,3 +13,4 @@ export * from './nats-jetstream.context';
 
 export * from './utils/nats-jetstream-record.builder';
 export * from './utils/nats-request-record-builder';
+export * from './utils/connection-status';
