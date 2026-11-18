@@ -120,9 +120,27 @@ async function waitFor(check: () => boolean, timeoutMs: number) {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// After a NATS restart the connection comes back before JetStream answers API
+// requests, so wait until it does instead of failing with TIMEOUT.
+async function waitForJetStream(timeoutMs = 30000) {
+  const until = Date.now() + timeoutMs;
+  for (;;) {
+    try {
+      await jsm.getAccountInfo();
+      return;
+    } catch (err) {
+      if (Date.now() > until) {
+        throw err;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+}
+
 // Deletes this run's streams, plus any stream an earlier, aborted run left on
 // the test subjects (it would make stream setup fail with overlapping subjects).
 async function deleteStreams(prefix: string) {
+  await waitForJetStream();
   for await (const info of jsm.streams.list()) {
     const leftover = info.config.subjects?.some((s) => s.startsWith('itest.'));
     if (info.config.name.startsWith(prefix) || leftover) {
