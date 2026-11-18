@@ -21,6 +21,8 @@ npm i nats
 npm i @nestjs-plugins/nestjs-nats-jetstream-transport
 ```
 
+Requires a maintained Node.js LTS release (Node 22 or later). On older Node versions, stay on an earlier release of this package.
+
 ## 🐳 Running Nats Jetstream server in Docker
 
 ```bash
@@ -61,11 +63,13 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **serverConsumerOptions**: ServerConsumerOptions
 - **jetStreamOptions**: JetStreamOption
 - **streamConfig**: NatsStreamConfig - Stream configuration. If defined, create stream if not exist.
+- **eventHandlerError**: EventHandlerErrorOptions (optional) - What to do with a message when its event handler fails. See [Handling event handler errors](#handling-event-handler-errors).
 
 ### NatsJetStreamClientOptions
 
 - **connectionOptions**: ConnectionOptions
 - **jetStreamOptions**: JetStreamOptions
+- **jetStreamOption**: JetStreamOptions - _Deprecated_, use `jetStreamOptions`. Still works; `jetStreamOptions` wins if both are set. (Before 2.3.0 only this name was read.)
 
 ### ServerConsumerOptions
 
@@ -93,6 +97,36 @@ You are now ready to publish and consume events on the stream. See the [code exa
 - **orderedConsumer**: boolean - a specialized push consumer that puts together flow control, heartbeats, and additional logic to handle message gaps. Ordered consumers cannot operate on a queue and cannot be durable.
 - **deliverGroup**: string - when set will only deliver messages to subscriptions matching that group.
 - **headersOnly**: boolean - configures the consumer to only deliver existing header and the `Nats-Msg-Size` header, no bodies.
+
+### EventHandlerErrorOptions
+
+- **action**: `term` | `nak` - `term` tells JetStream never to redeliver the message. `nak` asks JetStream to redeliver it.
+- **nakDelay**: number (optional, only with `nak`) - Milliseconds to wait before redelivery. `0` or unset redelivers immediately. Negative values are rejected.
+
+The server throws when it is constructed with an invalid setting.
+
+### Handling event handler errors
+
+When an `@EventPattern` handler throws (or returns an Observable that errors), NestJS logs the error. What then happens to the message depends on `eventHandlerError`:
+
+- **Not set (default, same as earlier versions):** the transport leaves the message alone. With `manualAck: true` it is redelivered when `ackWait` expires, up to `maxDeliver` times. Without `manualAck`, the client acknowledges every message automatically once the handler returns, so a failed message is not redelivered.
+- **`{ action: 'term' }`:** the message is terminated and never redelivered.
+- **`{ action: 'nak', nakDelay: 5000 }`:** the message is redelivered after the delay, without waiting for `ackWait`.
+
+```typescript
+new NatsJetStreamServer({
+  connectionOptions: { name: 'my-service' },
+  consumerOptions: { durable: 'my-durable', manualAck: true, maxDeliver: 100 },
+  eventHandlerError: { action: 'nak', nakDelay: 5000 },
+});
+```
+
+Things to keep in mind:
+
+- A message that always fails is redelivered until `maxDeliver` is reached, so set `maxDeliver` when you use `nak`.
+- If the handler already called `ack()`, `nak()` or `term()` on `context.message`, that first call wins and the setting has no effect.
+- Without `manualAck`, the setting only applies to errors raised before the handler returns. An Observable that errors later cannot change a message that has already been acknowledged.
+- A payload that is not valid JSON is always terminated, whatever the setting, because redelivering it cannot help.
 
 ### NatsConnectionOptions
 
