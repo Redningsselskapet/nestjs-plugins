@@ -54,7 +54,7 @@ A release of `@nestjs-plugins/nestjs-nats-jetstream-transport` that works with N
 
 - The server and client must satisfy the NestJS 11 custom transport contract: the type definitions compile against `@nestjs/microservices` 11, and every member NestJS 11 calls exists and behaves sensibly.
 - The server's and client's "unwrap" must return the underlying NATS connection once connected, and fail with a clear error before that.
-- The server's event-subscription method must forward the NATS connection's events (at least disconnect, reconnect and error) to the registered callbacks, in the same way NestJS 11's built-in NATS transport does.
+- The server's event-subscription method must forward the NATS connection's disconnect, reconnect and update events to the registered callbacks, the same events NestJS 11's built-in NATS transport forwards. (It does not forward an error event: emitting one with no listener registered would crash the service.)
 - The server and client must expose a connection status stream that reports at least connected, disconnected and reconnecting, using the same status names as NestJS 11's built-in NATS transport.
 - The new event-subscription method, "unwrap" and status stream must also be available on NestJS 8, where they are additive and change nothing that existing code uses.
 - On NestJS 11, with the same configuration as today, the following must behave exactly as on NestJS 8:
