@@ -4,21 +4,42 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22, 24]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.CI_REPOSITORY_ACCESS_TOKEN }}
 
-      - name: Setup NodeJS 14
-        uses: actions/setup-node@v1
+      - name: Setup NodeJS ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
         with:
-          node-version: 14
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # A service container cannot pass the -js flag, so start NATS directly.
+      - name: Start NATS JetStream
+        run: docker run -d --name nats -p 4222:4222 nats:2.10 -js
+
+      # The demo apps depend on the library's dist output, so build it first.
+      - name: Build
+        run: |
+          npx lerna run build --scope @nestjs-plugins/nestjs-nats-jetstream-transport
+          npx lerna run build --ignore @nestjs-plugins/nestjs-nats-jetstream-transport
+
+      - name: Lint
+        run: npx lerna run lint:check
 
       - name: Test
-        run: |
-          lerna bootstrap --ci
-          lerna run test --since HEAD~1
+        run: npx lerna run test
+
+      - name: Integration test
+        run: npx lerna run test:integration
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NATS_URL: nats://localhost:4222
